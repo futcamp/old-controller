@@ -69,3 +69,27 @@ func (w *WiFiController) SyncMeteoData() (CtrlMeteoData, error) {
 
 	return data, nil
 }
+
+// DisplayMeteoData get actual meteo data from controller
+func (w *WiFiController) DisplayMeteoData(data []int) error {
+	request := fmt.Sprintf("http://%s/display?", w.IP)
+	for i, datum := range data {
+		if i != 0 {
+			request += "&"
+		}
+		request += fmt.Sprintf("sensor%d=%d", i, datum)
+	}
+
+	res, err := http.Get(request)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+
+	_, err = ioutil.ReadAll(res.Body)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

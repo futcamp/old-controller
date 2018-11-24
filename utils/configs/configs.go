@@ -26,6 +26,7 @@ import (
 
 const (
 	AppName = "futcamp"
+	ApiVersion = "v2"
 )
 
 type ModCfg struct {

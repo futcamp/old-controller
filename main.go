@@ -18,6 +18,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/futcamp/controller/meteo"
 	"github.com/futcamp/controller/net"
 	"github.com/futcamp/controller/utils"
@@ -33,11 +35,15 @@ func main() {
 	container.Provide(configs.NewConfigs)
 	container.Provide(configs.NewMeteoConfigs)
 	container.Provide(meteo.NewMeteoStation)
+	container.Provide(meteo.NewMeteoTask)
 	container.Provide(net.NewWebServer)
 	container.Provide(NewApplication)
 
-	container.Invoke(func(app *Application) {
+	err := container.Invoke(func(app *Application) {
 		app.Start()
 		app.Free()
 	})
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 }

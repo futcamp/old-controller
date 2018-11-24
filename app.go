@@ -22,26 +22,29 @@ import (
 	"github.com/futcamp/controller/net"
 	"github.com/futcamp/controller/utils"
 	"github.com/futcamp/controller/utils/configs"
+
 	"github.com/google/logger"
 )
 
 type Application struct {
-	Log      *utils.Logger
-	Cfg      *configs.Configs
-	MeteoCfg *configs.MeteoConfigs
-	Meteo    *meteo.MeteoStation
-	Server   *net.WebServer
+	Log       *utils.Logger
+	Cfg       *configs.Configs
+	MeteoCfg  *configs.MeteoConfigs
+	Meteo     *meteo.MeteoStation
+	Server    *net.WebServer
+	MeteoTask *meteo.MeteoTask
 }
 
 // NewApplication make new struct
 func NewApplication(log *utils.Logger, cfg *configs.Configs, mCfg *configs.MeteoConfigs,
-	meteo *meteo.MeteoStation, srv *net.WebServer) *Application {
+	meteo *meteo.MeteoStation, srv *net.WebServer, mTask *meteo.MeteoTask) *Application {
 	return &Application{
-		Log:      log,
-		Cfg:      cfg,
-		MeteoCfg: mCfg,
-		Meteo:    meteo,
-		Server:   srv,
+		Log:       log,
+		Cfg:       cfg,
+		MeteoCfg:  mCfg,
+		Meteo:     meteo,
+		Server:    srv,
+		MeteoTask: mTask,
 	}
 }
 
@@ -52,26 +55,29 @@ func (a *Application) Start() {
 	// Load app configs
 	err := a.Cfg.LoadFromFile(utils.ConfigsPath)
 	if err != nil {
-		logger.Errorf("Fail to load [%s] configs", "main")
+		logger.Errorf("Fail to load \"%s\" configs", "main")
 		return
 	}
-	logger.Infof("Configs [%s] was loaded", "main")
+	logger.Infof("Configs \"%s\" was loaded", "main")
 
 	if a.Cfg.Settings().Modules.Meteo {
 		// Load meteo configs
 		err = a.MeteoCfg.LoadFromFile(utils.MeteoConfigsPath)
 		if err != nil {
-			logger.Infof("Fail to load [%s] configs", "meteo")
+			logger.Infof("Fail to load \"%s\" configs", "meteo")
 			return
 		}
-		logger.Infof("Configs [%s] was loaded", "meteo")
+		logger.Infof("Configs \"%s\" was loaded", "meteo")
 
 		// Add meteo sensors
 		for _, sensor := range a.MeteoCfg.Settings().Sensors {
 			a.Meteo.AddSensor(sensor.Name, sensor.Type, sensor.IP, sensor.Channel)
-			logger.Infof("New sensor [%s] type [%s] IP [%s] channel [%d]",
+			logger.Infof("New sensor \"%s\" type \"%s\" IP \"%s\" channel \"%s\"",
 				sensor.Name, sensor.Type, sensor.IP, sensor.Channel)
 		}
+
+		// Start task
+		a.MeteoTask.Start()
 	}
 
 	// Start web server

@@ -17,7 +17,11 @@
 
 package meteo
 
-import "sync"
+import (
+	"sync"
+
+	"github.com/google/logger"
+)
 
 type DisplayedSensor struct {
 	Name     string
@@ -72,9 +76,9 @@ func (s *Sensor) MeteoData() MeteoData {
 	return data
 }
 
+// NewMeteoStation make new struct
 func NewMeteoStation() *MeteoStation {
-	return &MeteoStation{
-	}
+	return &MeteoStation{}
 }
 
 // AddSensor add new meteo sensor
@@ -91,6 +95,23 @@ func (m *MeteoStation) AddSensor(name string, sType string, ip string, ch int) {
 	}
 
 	m.Sensors[name] = sensor
+}
+
+// Sensor get meteo data from sensor
+func (m *MeteoStation) Sensor(name string) DisplayedSensor {
+	sensor := m.Sensors[name]
+	data := sensor.MeteoData()
+
+	dSensor := DisplayedSensor{
+		Name:     sensor.Name,
+		Type:     sensor.Type,
+		Temp:     data.Temp,
+		Humidity: data.Humidity,
+		Pressure: data.Pressure,
+		Altitude: data.Altitude,
+	}
+
+	return dSensor
 }
 
 // AllSensors get all sensors list
@@ -121,6 +142,7 @@ func (m *MeteoStation) SyncData() {
 		ctrl := NewWiFiController(sensor.Type, sensor.IP, sensor.Channel)
 		data, err := ctrl.SyncMeteoData()
 		if err != nil {
+			logger.Errorf("Fail to sync meteo data with sensor [%s]", sensor.Name)
 			continue
 		}
 
@@ -132,4 +154,3 @@ func (m *MeteoStation) SyncData() {
 		})
 	}
 }
-

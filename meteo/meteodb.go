@@ -98,7 +98,7 @@ func (m *MeteoDB) MeteoDataByDate(sensor string, date string) ([]MeteoDBData, er
 	var data []MeteoDBData
 
 	rows, err := m.Database.Query(
-		fmt.Sprintf("SELECT temp,humidity,pressure,altitude,time,date FROM %s WHERE date=%s",
+		fmt.Sprintf("SELECT temp,humidity,pressure,altitude,time,date FROM %s WHERE date=\"%s\"",
 			sensor, date))
 	if err != nil {
 		return data, err

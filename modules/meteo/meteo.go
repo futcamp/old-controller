@@ -29,14 +29,12 @@ type DisplayedSensor struct {
 	Temp     int
 	Humidity int
 	Pressure int
-	Altitude int
 }
 
 type MeteoData struct {
 	Temp     int
 	Humidity int
 	Pressure int
-	Altitude int
 }
 
 type Sensor struct {
@@ -58,7 +56,6 @@ func (s *Sensor) SetMeteoData(data *MeteoData) {
 	s.Data.Temp = data.Temp
 	s.Data.Humidity = data.Humidity
 	s.Data.Pressure = data.Pressure
-	s.Data.Altitude = data.Altitude
 	s.Mtx.Unlock()
 }
 
@@ -70,7 +67,6 @@ func (s *Sensor) MeteoData() MeteoData {
 	data.Temp = s.Data.Temp
 	data.Humidity = s.Data.Humidity
 	data.Pressure = s.Data.Pressure
-	data.Altitude = s.Data.Altitude
 	s.Mtx.Unlock()
 
 	return data
@@ -108,7 +104,6 @@ func (m *MeteoStation) Sensor(name string) DisplayedSensor {
 		Temp:     data.Temp,
 		Humidity: data.Humidity,
 		Pressure: data.Pressure,
-		Altitude: data.Altitude,
 	}
 
 	return dSensor
@@ -127,7 +122,6 @@ func (m *MeteoStation) AllSensors() []DisplayedSensor {
 			Temp:     data.Temp,
 			Humidity: data.Humidity,
 			Pressure: data.Pressure,
-			Altitude: data.Altitude,
 		}
 
 		sensors = append(sensors, dSensor)
@@ -142,7 +136,7 @@ func (m *MeteoStation) SyncData() {
 		ctrl := NewWiFiController(sensor.Type, sensor.IP, sensor.Channel)
 		data, err := ctrl.SyncMeteoData()
 		if err != nil {
-			logger.Errorf("Fail to sync meteo data with sensor [%s]", sensor.Name)
+			logger.Errorf("Fail to sync meteo data with sensor \"%s\"", sensor.Name)
 			continue
 		}
 
@@ -150,7 +144,6 @@ func (m *MeteoStation) SyncData() {
 			Temp:     data.Temp,
 			Humidity: data.Humidity,
 			Pressure: data.Pressure,
-			Altitude: data.Altitude,
 		})
 	}
 }

@@ -26,10 +26,10 @@ import (
 
 // CtrlMeteoData controlller meteo data
 type CtrlMeteoData struct {
-	Temp int    `json:"temperature"`
-	Humidity    int    `json:"humidity"`
-	Pressure    int    `json:"pressure"`
-	Altitude    int    `json:"altitude"`
+	Temp     int `json:"temperature"`
+	Humidity int `json:"humidity"`
+	Pressure int `json:"pressure"`
+	Altitude int `json:"altitude"`
 }
 
 type WiFiController struct {
@@ -41,9 +41,9 @@ type WiFiController struct {
 // NewWiFiController make new struct
 func NewWiFiController(sType string, ip string, ch int) *WiFiController {
 	return &WiFiController{
-		SensorType:sType,
-		IP:ip,
-		Channel:ch,
+		SensorType: sType,
+		IP:         ip,
+		Channel:    ch,
 	}
 }
 

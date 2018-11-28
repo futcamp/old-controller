@@ -78,8 +78,8 @@ func (m *MeteoDB) AddMeteoData(data *MeteoDBData) error {
 	}
 
 	stmt, err := m.Database.Prepare(fmt.Sprintf(
-		"INSERT INTO %s(temp,humidity,pressure,altitude,time,date) VALUES (%d,%d,%d,%d,\"%s\",\"%s\")",
-			data.Sensor, data.Temp, data.Humidity, data.Pressure, data.Altitude,
+		"INSERT INTO %s(temp,humidity,pressure,time,date) VALUES (%d,%d,%d,\"%s\",\"%s\")",
+			data.Sensor, data.Temp, data.Humidity, data.Pressure,
 			fmt.Sprintf("%d:00", hour), date))
 	if err != nil {
 		return err
@@ -98,7 +98,7 @@ func (m *MeteoDB) MeteoDataByDate(sensor string, date string) ([]MeteoDBData, er
 	var data []MeteoDBData
 
 	rows, err := m.Database.Query(
-		fmt.Sprintf("SELECT temp,humidity,pressure,altitude,time,date FROM %s WHERE date=\"%s\"",
+		fmt.Sprintf("SELECT temp,humidity,pressure,time,date FROM %s WHERE date=\"%s\"",
 			sensor, date))
 	if err != nil {
 		return data, err
@@ -108,12 +108,13 @@ func (m *MeteoDB) MeteoDataByDate(sensor string, date string) ([]MeteoDBData, er
 		var datum MeteoDBData
 
 		err = rows.Scan(
-			&datum.Temp, &datum.Humidity, &datum.Pressure, &datum.Altitude, &datum.Time,
+			&datum.Temp, &datum.Humidity, &datum.Pressure, &datum.Time,
 			&datum.Date)
 		if err != nil {
 			return data, err
 		}
 
+		datum.Sensor = sensor
 		data = append(data, datum)
 	}
 

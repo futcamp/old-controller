@@ -15,7 +15,7 @@
 /*
 /*******************************************************************/
 
-package net
+package handlers
 
 import (
 	"encoding/json"

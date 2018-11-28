@@ -18,7 +18,7 @@
 package main
 
 import (
-	"github.com/futcamp/controller/meteo"
+	"github.com/futcamp/controller/modules/meteo"
 	"github.com/futcamp/controller/net"
 	"github.com/futcamp/controller/utils"
 	"github.com/futcamp/controller/utils/configs"
@@ -72,7 +72,7 @@ func (a *Application) Start() {
 		// Add meteo sensors
 		for _, sensor := range a.MeteoCfg.Settings().Sensors {
 			a.Meteo.AddSensor(sensor.Name, sensor.Type, sensor.IP, sensor.Channel)
-			logger.Infof("New sensor \"%s\" type \"%s\" IP \"%s\" channel \"%s\"",
+			logger.Infof("New sensor \"%s\" type \"%s\" IP \"%s\" channel \"%d\"",
 				sensor.Name, sensor.Type, sensor.IP, sensor.Channel)
 		}
 

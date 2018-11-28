@@ -20,7 +20,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/futcamp/controller/meteo"
+	"github.com/futcamp/controller/modules/meteo"
 	"github.com/futcamp/controller/net"
 	"github.com/futcamp/controller/utils"
 	"github.com/futcamp/controller/utils/configs"

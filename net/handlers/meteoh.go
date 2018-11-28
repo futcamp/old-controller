@@ -24,6 +24,7 @@ import (
 	"strings"
 
 	"github.com/futcamp/controller/modules/meteo"
+	"github.com/futcamp/controller/net/handlers/nettools"
 	"github.com/futcamp/controller/utils/configs"
 	"github.com/google/logger"
 )
@@ -31,8 +32,8 @@ import (
 // ProcessMeteoHandler process meteo handler
 func ProcessMeteoHandler(m *meteo.MeteoStation, mCfg *configs.MeteoConfigs,
 	writer *http.ResponseWriter, req *http.Request)  {
-	data := &RestResponse{}
-	resp := NewResponse(writer, configs.AppName)
+	data := &nettools.RestResponse{}
+	resp := nettools.NewResponse(writer, configs.AppName)
 	args := strings.Split(req.RequestURI, "/")
 
 	// Get sensors data by date
@@ -52,7 +53,7 @@ func ProcessMeteoHandler(m *meteo.MeteoStation, mCfg *configs.MeteoConfigs,
 			resp.SendFail(err.Error())
 			return
 		}
-		SetRestResponse(data, "meteo", "Meteo Station", sensors, req)
+		nettools.SetRestResponse(data, "meteo", "Meteo Station", sensors, req)
 		fmt.Print(sensors)
 
 		jData, _ := json.Marshal(data)
@@ -68,7 +69,7 @@ func ProcessMeteoHandler(m *meteo.MeteoStation, mCfg *configs.MeteoConfigs,
 	}
 
 	sensors := m.AllSensors()
-	SetRestResponse(data, "meteo", "Meteo Station", sensors, req)
+	nettools.SetRestResponse(data, "meteo", "Meteo Station", sensors, req)
 
 	jData, _ := json.Marshal(data)
 	resp.Send(string(jData))

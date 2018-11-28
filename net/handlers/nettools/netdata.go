@@ -15,7 +15,7 @@
 /*
 /*******************************************************************/
 
-package handlers
+package nettools
 
 import (
 	"crypto/sha512"

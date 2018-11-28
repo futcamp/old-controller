@@ -19,11 +19,12 @@ package net
 
 import (
 	"fmt"
-	"github.com/futcamp/controller/net/handlers"
 	"net/http"
 	"time"
 
 	"github.com/futcamp/controller/modules/meteo"
+	"github.com/futcamp/controller/net/handlers"
+	"github.com/futcamp/controller/net/handlers/nettools"
 	"github.com/futcamp/controller/utils/configs"
 )
 
@@ -66,7 +67,7 @@ func (w *WebServer) Start(ip string, port int) error {
 
 // IndexHandler index handler with app information
 func (w *WebServer) IndexHandler(writer http.ResponseWriter, req *http.Request) {
-	resp := handlers.NewResponse(&writer, AppName)
+	resp := nettools.NewResponse(&writer, AppName)
 	resp.SendOk()
 }
 

@@ -33,6 +33,8 @@ func main() {
 	container := dig.New()
 
 	container.Provide(utils.NewLogger)
+	container.Provide(utils.NewLogTask)
+	container.Provide(handlers.NewLogHandler)
 	container.Provide(configs.NewConfigs)
 	container.Provide(configs.NewMeteoConfigs)
 	container.Provide(meteo.NewMeteoStation)

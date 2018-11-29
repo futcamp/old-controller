@@ -38,16 +38,19 @@ type WebServer struct {
 	MeteoCfg *configs.MeteoConfigs
 	Meteo    *meteo.MeteoStation
 	MeteoHdl *handlers.MeteoHandler
+	LogHdl   *handlers.LogHandler
 }
 
 // NewWebServer make new struct
 func NewWebServer(cfg *configs.Configs, meteo *meteo.MeteoStation,
-	mCfg *configs.MeteoConfigs, mh *handlers.MeteoHandler) *WebServer {
+	mCfg *configs.MeteoConfigs, mh *handlers.MeteoHandler,
+	lh *handlers.LogHandler) *WebServer {
 	return &WebServer{
 		Cfg:      cfg,
 		MeteoCfg: mCfg,
 		Meteo:    meteo,
 		MeteoHdl: mh,
+		LogHdl:   lh,
 	}
 }
 
@@ -56,6 +59,7 @@ func (w *WebServer) Start(ip string, port int) error {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/", w.IndexHandler)
+	mux.HandleFunc(fmt.Sprintf("/api/%s/log/", configs.ApiVersion), w.LogHandler)
 	if w.Cfg.Settings().Modules.Meteo {
 		mux.HandleFunc(fmt.Sprintf("/api/%s/meteo/", configs.ApiVersion), w.MeteoHandler)
 	}
@@ -75,6 +79,29 @@ func (w *WebServer) Start(ip string, port int) error {
 func (w *WebServer) IndexHandler(writer http.ResponseWriter, req *http.Request) {
 	resp := NewResponse(&writer, AppName)
 	resp.SendOk()
+}
+
+// LogHandler logger handler
+func (w *WebServer) LogHandler(writer http.ResponseWriter, req *http.Request) {
+	resp := NewResponse(&writer, configs.AppName)
+	args := strings.Split(req.RequestURI, "/")
+
+	if len(args) == 5 {
+		logs, err := w.LogHdl.LogsByDate(args[4], req)
+		if err != nil {
+			resp.SendFail(err.Error())
+			return
+		}
+		resp.Send(string(logs))
+		return
+	}
+
+	logs, err := w.LogHdl.ExistingLogsList(req)
+	if err != nil {
+		resp.SendFail(err.Error())
+		return
+	}
+	resp.Send(string(logs))
 }
 
 // MeteoHandler meteo station requests handler

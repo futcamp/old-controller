@@ -28,6 +28,7 @@ import (
 
 type Application struct {
 	Log       *utils.Logger
+	LogTask   *utils.LogTask
 	Cfg       *configs.Configs
 	MeteoCfg  *configs.MeteoConfigs
 	Meteo     *meteo.MeteoStation
@@ -37,7 +38,8 @@ type Application struct {
 
 // NewApplication make new struct
 func NewApplication(log *utils.Logger, cfg *configs.Configs, mCfg *configs.MeteoConfigs,
-	meteo *meteo.MeteoStation, srv *net.WebServer, mTask *meteo.MeteoTask) *Application {
+	meteo *meteo.MeteoStation, srv *net.WebServer, mTask *meteo.MeteoTask,
+	lTask *utils.LogTask) *Application {
 	return &Application{
 		Log:       log,
 		Cfg:       cfg,
@@ -45,6 +47,7 @@ func NewApplication(log *utils.Logger, cfg *configs.Configs, mCfg *configs.Meteo
 		Meteo:     meteo,
 		Server:    srv,
 		MeteoTask: mTask,
+		LogTask:   lTask,
 	}
 }
 
@@ -77,8 +80,11 @@ func (a *Application) Start() {
 		}
 
 		// Start task
-		a.MeteoTask.Start()
+		go a.MeteoTask.Start()
 	}
+
+	// Start logger task
+	go a.LogTask.Start()
 
 	// Start web server
 	logger.Infof("Starting Web server at %s:%d...", a.Cfg.Settings().Server.IP,

@@ -35,14 +35,14 @@ type RestResponse struct {
 	Host        string      `json:"host"`
 	Protocol    string      `json:"protocol"`
 	Method      string      `json:"method"`
-	Sensors     interface{} `json:"sensors"`
+	Data        interface{} `json:"data"`
 	Hash        string      `json:"hash"`
 	HashType    string      `json:"hash_type"`
 }
 
 // SetRestResponse set values for response
 func SetRestResponse(restData *RestResponse, module string, desc string,
-	sensors interface{}, req *http.Request) {
+	data interface{}, req *http.Request) {
 	// Add info
 	restData.Module = module
 	restData.Description = desc
@@ -53,7 +53,7 @@ func SetRestResponse(restData *RestResponse, module string, desc string,
 	restData.Host = req.Host
 	restData.Protocol = req.Proto
 	restData.Method = req.Method
-	restData.Sensors = sensors
+	restData.Data = data
 
 	// Calc response hash
 	byteData, _ := json.Marshal(restData)

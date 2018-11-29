@@ -15,7 +15,7 @@
 /*
 /*******************************************************************/
 
-package nettools
+package net
 
 import (
 	"encoding/json"

@@ -121,6 +121,22 @@ func (m *MeteoDB) MeteoDataByDate(sensor string, date string) ([]MeteoDBData, er
 	return data, nil
 }
 
+// MeteoDataClear clear meteo values from sensor table
+func (m *MeteoDB) MeteoDataClear(sensor string) error {
+	stmt, err := m.Database.Prepare(fmt.Sprintf(
+		"DELETE FROM %s", sensor))
+	if err != nil {
+		return err
+	}
+
+	_, err = stmt.Exec()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // Unload close database
 func (m *MeteoDB) Unload() {
 	if m.Database != nil {

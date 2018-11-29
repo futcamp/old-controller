@@ -22,5 +22,5 @@ const (
 	ConfigsPath      = "conf/futcamp.conf"
 	MeteoConfigsPath = "conf/meteo.conf"
 	Database         = "db/meteo.db"
-	LogPath          = "futcamp.log"
+	LogPath          = "./"
 )

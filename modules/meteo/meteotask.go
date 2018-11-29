@@ -131,5 +131,5 @@ func (m *MeteoTask) TaskHandler() {
 // Start start new timer
 func (m *MeteoTask) Start() {
 	m.ReqTimer = time.NewTimer(taskDelay * time.Second)
-	go m.TaskHandler()
+	m.TaskHandler()
 }

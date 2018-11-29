@@ -18,9 +18,13 @@
 package utils
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"os"
+	"strings"
+	"time"
 
 	"github.com/google/logger"
 )
@@ -38,9 +42,10 @@ func NewLogger() *Logger {
 // Init logger initialization
 func (l *Logger) Init(path string) {
 	var err error
+	date := time.Now().Format("2006-01-02")
 
 	// Configuring log module
-	l.logFile, err = os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0660)
+	l.logFile, err = os.OpenFile(fmt.Sprintf("%s%s.log", path, date), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0660)
 	if err != nil {
 		fmt.Println("Fail to open log file!")
 		return
@@ -50,7 +55,48 @@ func (l *Logger) Init(path string) {
 	l.logger = logger.Init("FutcampLogger", *verbose, true, l.logFile)
 }
 
+// LogsList reading logs list from path
+func (l *Logger) LogsList(path string) ([]string, error) {
+	var logFiles []string
+
+	files, err := ioutil.ReadDir(path)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, file := range files {
+		if !file.IsDir() {
+			parts := strings.Split(file.Name(), ".")
+			if len(parts) < 2 {
+				continue
+			}
+
+			if parts[1] == "log" {
+				logFiles = append(logFiles, file.Name())
+			}
+		}
+	}
+	return logFiles, nil
+}
+
+// ReadLogByDate reading logs messages by date
+func (l *Logger) ReadLogByDate(date string) ([]string, error) {
+	var logs []string
+
+	file, _ := os.Open(fmt.Sprintf("%s.log", date))
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		logs = append(logs, scanner.Text())
+	}
+
+	return logs, nil
+}
+
 // Free unload logger module
 func (l *Logger) Free() {
-	l.logger.Close()
+	if l.logger != nil {
+		l.logger.Close()
+	}
 }

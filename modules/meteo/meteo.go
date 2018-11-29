@@ -24,11 +24,11 @@ import (
 )
 
 type DisplayedSensor struct {
-	Name     string
-	Type     string
-	Temp     int
-	Humidity int
-	Pressure int
+	Name     string `json:"name"`
+	Type     string `json:"type"`
+	Temp     int    `json:"temp"`
+	Humidity int    `json:"humidity"`
+	Pressure int    `json:"pressure"`
 }
 
 type MeteoData struct {

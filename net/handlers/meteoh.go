@@ -19,58 +19,84 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/futcamp/controller/modules/meteo"
 	"github.com/futcamp/controller/net/handlers/nettools"
 	"github.com/futcamp/controller/utils/configs"
-	"github.com/google/logger"
+	"github.com/pkg/errors"
 )
 
-// ProcessMeteoHandler process meteo handler
-func ProcessMeteoHandler(m *meteo.MeteoStation, mCfg *configs.MeteoConfigs,
-	writer *http.ResponseWriter, req *http.Request)  {
+type MeteoHandler struct {
+	MeteoCfg *configs.MeteoConfigs
+	Meteo    *meteo.MeteoStation
+}
+
+// NewMeteoHandler make new struct
+func NewMeteoHandler(mCfg *configs.MeteoConfigs, meteo *meteo.MeteoStation) *MeteoHandler {
+	return &MeteoHandler{
+		MeteoCfg: mCfg,
+		Meteo:    meteo,
+	}
+}
+
+// ProcessMeteoAllHandler display actual meteo data for all sensors
+func (m *MeteoHandler) ProcessMeteoAllHandler(req *http.Request) ([]byte, error) {
 	data := &nettools.RestResponse{}
-	resp := nettools.NewResponse(writer, configs.AppName)
-	args := strings.Split(req.RequestURI, "/")
 
-	// Get sensors data by date
-	if len(args) == 6 && req.Method == http.MethodGet {
-		db := meteo.NewMeteoDB(mCfg.Settings().Database.Path)
-		err := db.Load()
-		if err != nil {
-			logger.Error(err.Error())
-			resp.SendFail(err.Error())
-			return
-		}
-
-		sensors, err := db.MeteoDataByDate(args[4], args[5])
-		db.Unload()
-		if err != nil {
-			logger.Error(err.Error())
-			resp.SendFail(err.Error())
-			return
-		}
-		nettools.SetRestResponse(data, "meteo", "Meteo Station", sensors, req)
-		fmt.Print(sensors)
-
-		jData, _ := json.Marshal(data)
-		resp.Send(string(jData))
-		return
-	}
-
-	// Get actual meteo data from all sensors
 	if req.Method != http.MethodGet {
-		logger.Error("Bad request method")
-		resp.SendFail("Bad request method")
-		return
+		return nil, errors.New("Bad request method")
 	}
 
-	sensors := m.AllSensors()
+	sensors := m.Meteo.AllSensors()
 	nettools.SetRestResponse(data, "meteo", "Meteo Station", sensors, req)
 
 	jData, _ := json.Marshal(data)
-	resp.Send(string(jData))
+	return jData, nil
+}
+
+// ProcessMeteoDBHandler display meteo data for concrete sensor by date
+func (m *MeteoHandler) ProcessMeteoDBHandler(sensor string, date string, req *http.Request) ([]byte, error) {
+	data := &nettools.RestResponse{}
+
+	if req.Method != http.MethodGet {
+		return nil, errors.New("Bad request method")
+	}
+
+	db := meteo.NewMeteoDB(m.MeteoCfg.Settings().Database.Path)
+	err := db.Load()
+	if err != nil {
+		return nil, err
+	}
+
+	sensors, err := db.MeteoDataByDate(sensor, date)
+	db.Unload()
+	if err != nil {
+		return nil, err
+	}
+	nettools.SetRestResponse(data, "meteo", "Meteo Station", sensors, req)
+
+	jData, _ := json.Marshal(data)
+	return jData, nil
+}
+
+// ProcessMeteoDBClearHandler delete sensor's values from table
+func (m *MeteoHandler) ProcessMeteoDBClearHandler(sensor string, req *http.Request) error {
+	if req.Method != http.MethodPut {
+		return errors.New("Bad request method")
+	}
+
+	db := meteo.NewMeteoDB(m.MeteoCfg.Settings().Database.Path)
+	err := db.Load()
+	if err != nil {
+		return err
+	}
+
+	err = db.MeteoDataClear(sensor)
+	db.Unload()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

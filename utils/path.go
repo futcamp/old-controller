@@ -21,6 +21,6 @@ package utils
 const (
 	ConfigsPath      = "conf/futcamp.conf"
 	MeteoConfigsPath = "conf/meteo.conf"
-	LogPath          = "futcamp.log"
 	Database         = "db/meteo.db"
+	LogPath          = "futcamp.log"
 )

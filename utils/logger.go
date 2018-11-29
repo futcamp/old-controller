@@ -27,7 +27,7 @@ import (
 
 type Logger struct {
 	logFile *os.File
-	logger *logger.Logger
+	logger  *logger.Logger
 }
 
 // NewLogger make new struct

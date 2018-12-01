@@ -19,8 +19,8 @@ package utils
 
 // File with all global path
 const (
-	ConfigsPath      = "conf/futcamp.conf"
-	MeteoConfigsPath = "conf/meteo.conf"
-	Database         = "db/meteo.db"
-	LogPath          = "./"
+	ConfigsPath      = "/etc/fc/futcamp.conf"
+	MeteoConfigsPath = "/etc/fc/meteo.conf"
+	Database         = "/root/meteo.db"
+	LogPath          = "/var/log/fc/"
 )

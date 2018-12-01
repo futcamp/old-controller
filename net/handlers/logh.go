@@ -19,9 +19,10 @@ package handlers
 
 import (
 	"encoding/json"
+	"net/http"
+
 	"github.com/futcamp/controller/net/handlers/nettools"
 	"github.com/futcamp/controller/utils"
-	"net/http"
 )
 
 type LogHandler struct {
@@ -36,7 +37,7 @@ func NewLogHandler(log *utils.Logger) *LogHandler {
 }
 
 // ExistingLogsList get existing log files list
-func (l *LogHandler) ExistingLogsList(req *http.Request) ([]byte, error) {
+func (l *LogHandler) ProcessExistingLogsList(req *http.Request) ([]byte, error) {
 	data := &nettools.RestResponse{}
 
 	logFiles, err := l.Log.LogsList(utils.LogPath)
@@ -51,7 +52,7 @@ func (l *LogHandler) ExistingLogsList(req *http.Request) ([]byte, error) {
 }
 
 // ExistingLogsList get existing log files list
-func (l *LogHandler) LogsByDate(date string, req *http.Request) ([]byte, error) {
+func (l *LogHandler) ProcessLogsByDate(date string, req *http.Request) ([]byte, error) {
 	data := &nettools.RestResponse{}
 
 	logs, err := l.Log.ReadLogByDate(date)

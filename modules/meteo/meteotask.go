@@ -71,16 +71,17 @@ func (m *MeteoTask) TaskHandler() {
 			for _, display := range m.Cfg.Settings().Displays {
 				if display.Enable {
 					for _, sensor := range display.Sensors {
-						var sensorData []int
-
 						data := m.Meteo.Sensor(sensor)
-						sensorData = append(sensorData, data.Temp)
-						sensorData = append(sensorData, data.Humidity)
-						sensorData = append(sensorData, data.Pressure)
+
+						ctrlSensor := &CtrlMeteoData{
+							Temp:     data.Temp,
+							Humidity: data.Humidity,
+							Pressure: data.Pressure,
+						}
 
 						// Send data to controller
 						ctrl := NewWiFiController("", display.IP, 0)
-						err := ctrl.DisplayMeteoData(sensorData)
+						err := ctrl.DisplayMeteoData(sensor, ctrlSensor)
 						if err != nil {
 							logger.Errorf("Fail to display data on \"%s\" from sensor \"%s\"",
 								display.Name, sensor)

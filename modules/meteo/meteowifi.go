@@ -50,7 +50,8 @@ func NewWiFiController(sType string, ip string, ch int) *WiFiController {
 func (w *WiFiController) SyncMeteoData() (CtrlMeteoData, error) {
 	var data CtrlMeteoData
 
-	res, err := http.Get(fmt.Sprintf("http://%s/meteo?chan=%d&type=%s", w.IP, w.Channel, w.SensorType))
+	res, err := http.Get(fmt.Sprintf("http://%s/meteo?chan=%d&type=%s",
+		w.IP, w.Channel, w.SensorType))
 	if err != nil {
 		return data, err
 	}
@@ -70,14 +71,9 @@ func (w *WiFiController) SyncMeteoData() (CtrlMeteoData, error) {
 }
 
 // DisplayMeteoData get actual meteo data from controller
-func (w *WiFiController) DisplayMeteoData(data []int) error {
-	request := fmt.Sprintf("http://%s/display?", w.IP)
-	for i, datum := range data {
-		if i != 0 {
-			request += "&"
-		}
-		request += fmt.Sprintf("sensor%d=%d", i, datum)
-	}
+func (w *WiFiController) DisplayMeteoData(sensor string, data *CtrlMeteoData) error {
+	request := fmt.Sprintf("http://%s/display?sensor=%s&temp=%d&hum=%d&pres=%d",
+		w.IP, sensor, data.Temp, data.Humidity, data.Pressure)
 
 	res, err := http.Get(request)
 	if err != nil {

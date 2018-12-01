@@ -74,8 +74,10 @@ func (m *MeteoDB) AddMeteoData(data *MeteoDBData) error {
 	}
 	if rows.Next() {
 		// Record in table already exists
+		rows.Close()
 		return nil
 	}
+	rows.Close()
 
 	stmt, err := m.Database.Prepare(fmt.Sprintf(
 		"INSERT INTO %s(temp,humidity,pressure,time,date) VALUES (%d,%d,%d,\"%s\",\"%s\")",
@@ -90,7 +92,6 @@ func (m *MeteoDB) AddMeteoData(data *MeteoDBData) error {
 		return err
 	}
 	stmt.Close()
-	rows.Close()
 
 	return nil
 }

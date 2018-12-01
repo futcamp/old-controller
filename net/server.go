@@ -87,7 +87,7 @@ func (w *WebServer) LogHandler(writer http.ResponseWriter, req *http.Request) {
 	args := strings.Split(req.RequestURI, "/")
 
 	if len(args) == 5 {
-		logs, err := w.LogHdl.LogsByDate(args[4], req)
+		logs, err := w.LogHdl.ProcessLogsByDate(args[4], req)
 		if err != nil {
 			resp.SendFail(err.Error())
 			return
@@ -96,7 +96,7 @@ func (w *WebServer) LogHandler(writer http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	logs, err := w.LogHdl.ExistingLogsList(req)
+	logs, err := w.LogHdl.ProcessExistingLogsList(req)
 	if err != nil {
 		resp.SendFail(err.Error())
 		return

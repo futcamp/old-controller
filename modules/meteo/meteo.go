@@ -136,7 +136,8 @@ func (m *MeteoStation) SyncData() {
 		ctrl := NewWiFiController(sensor.Type, sensor.IP, sensor.Channel)
 		data, err := ctrl.SyncMeteoData()
 		if err != nil {
-			logger.Errorf("Fail to sync meteo data with sensor \"%s\"", sensor.Name)
+			logger.Errorf("Fail to sync meteo data with sensor \"%s\" (%s)", sensor.Name,
+				err.Error())
 			continue
 		}
 

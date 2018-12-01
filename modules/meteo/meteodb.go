@@ -89,6 +89,8 @@ func (m *MeteoDB) AddMeteoData(data *MeteoDBData) error {
 	if err != nil {
 		return err
 	}
+	stmt.Close()
+	rows.Close()
 
 	return nil
 }
@@ -117,6 +119,7 @@ func (m *MeteoDB) MeteoDataByDate(sensor string, date string) ([]MeteoDBData, er
 		datum.Sensor = sensor
 		data = append(data, datum)
 	}
+	rows.Close()
 
 	return data, nil
 }
@@ -133,13 +136,12 @@ func (m *MeteoDB) MeteoDataClear(sensor string) error {
 	if err != nil {
 		return err
 	}
+	stmt.Close()
 
 	return nil
 }
 
 // Unload close database
 func (m *MeteoDB) Unload() {
-	if m.Database != nil {
-		m.Database.Close()
-	}
+	m.Database.Close()
 }

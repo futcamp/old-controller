@@ -26,10 +26,9 @@ import (
 
 // CtrlMeteoData controlller meteo data
 type CtrlMeteoData struct {
-	Temp     int `json:"temperature"`
+	Temp     int `json:"temp"`
 	Humidity int `json:"humidity"`
 	Pressure int `json:"pressure"`
-	Altitude int `json:"altitude"`
 }
 
 type WiFiController struct {
@@ -62,7 +61,7 @@ func (w *WiFiController) SyncMeteoData() (CtrlMeteoData, error) {
 		return data, err
 	}
 
-	err = json.Unmarshal(byteBuf, data)
+	err = json.Unmarshal(byteBuf, &data)
 	if err != nil {
 		return data, err
 	}

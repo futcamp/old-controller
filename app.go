@@ -58,24 +58,24 @@ func (a *Application) Start() {
 	// Load app configs
 	err := a.Cfg.LoadFromFile(utils.ConfigsPath)
 	if err != nil {
-		logger.Errorf("Fail to load \"%s\" configs", "main")
+		logger.Errorf("Fail to load %s configs", "main")
 		return
 	}
-	logger.Infof("Configs \"%s\" was loaded", "main")
+	logger.Infof("Configs %s was loaded", "main")
 
 	if a.Cfg.Settings().Modules.Meteo {
 		// Load meteo configs
 		err = a.MeteoCfg.LoadFromFile(utils.MeteoConfigsPath)
 		if err != nil {
-			logger.Infof("Fail to load \"%s\" configs", "meteo")
+			logger.Infof("Fail to load %s configs", "meteo")
 			return
 		}
-		logger.Infof("Configs \"%s\" was loaded", "meteo")
+		logger.Infof("Configs %s was loaded", "meteo")
 
 		// Add meteo sensors
 		for _, sensor := range a.MeteoCfg.Settings().Sensors {
 			a.Meteo.AddSensor(sensor.Name, sensor.Type, sensor.IP, sensor.Channel)
-			logger.Infof("New sensor \"%s\" type \"%s\" IP \"%s\" channel \"%d\"",
+			logger.Infof("New sensor %s type %s IP %s channel %d",
 				sensor.Name, sensor.Type, sensor.IP, sensor.Channel)
 		}
 

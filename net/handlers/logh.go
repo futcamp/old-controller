@@ -55,7 +55,7 @@ func (l *LogHandler) ProcessExistingLogsList(req *http.Request) ([]byte, error) 
 func (l *LogHandler) ProcessLogsByDate(date string, req *http.Request) ([]byte, error) {
 	data := &nettools.RestResponse{}
 
-	logs, err := l.Log.ReadLogByDate(date)
+	logs, err := l.Log.ReadLogByDate(utils.LogPath, date)
 	if err != nil {
 		return nil, err
 	}

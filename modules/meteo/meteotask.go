@@ -115,8 +115,7 @@ func (m *MeteoTask) TaskHandler() {
 					}
 					err = db.AddMeteoData(data)
 					if err != nil {
-						logger.Errorf("Fail to add to database data from sensor %s (%s)",
-							sensor.Name, err.Error())
+						logger.Errorf("Fail to add to database data from sensor %s")
 					}
 				}
 

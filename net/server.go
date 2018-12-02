@@ -86,7 +86,7 @@ func (w *WebServer) LogHandler(writer http.ResponseWriter, req *http.Request) {
 	resp := NewResponse(&writer, configs.AppName)
 	args := strings.Split(req.RequestURI, "/")
 
-	if len(args) == 5 {
+	if len(args) == 5 && args[4] != "" {
 		logs, err := w.LogHdl.ProcessLogsByDate(args[4], req)
 		if err != nil {
 			resp.SendFail(err.Error())

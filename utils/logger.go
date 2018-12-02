@@ -80,10 +80,10 @@ func (l *Logger) LogsList(path string) ([]string, error) {
 }
 
 // ReadLogByDate reading logs messages by date
-func (l *Logger) ReadLogByDate(date string) ([]string, error) {
+func (l *Logger) ReadLogByDate(path string, date string) ([]string, error) {
 	var logs []string
 
-	file, _ := os.Open(fmt.Sprintf("%s.log", date))
+	file, _ := os.Open(fmt.Sprintf("%s%s.log", path, date))
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)

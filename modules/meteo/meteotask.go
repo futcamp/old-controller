@@ -83,7 +83,7 @@ func (m *MeteoTask) TaskHandler() {
 						ctrl := NewWiFiController("", display.IP, 0)
 						err := ctrl.DisplayMeteoData(sensor, ctrlSensor)
 						if err != nil {
-							logger.Errorf("Fail to display data on \"%s\" from sensor \"%s\"",
+							logger.Errorf("Fail to display data on %s from sensor %s",
 								display.Name, sensor)
 						}
 					}
@@ -101,7 +101,7 @@ func (m *MeteoTask) TaskHandler() {
 				db := NewMeteoDB(m.Cfg.Settings().Database.Path)
 				err := db.Load()
 				if err != nil {
-					logger.Errorf("Fail to load \"%s\" database", "Meteo")
+					logger.Errorf("Fail to load %s database", "Meteo")
 					continue
 				}
 
@@ -115,7 +115,7 @@ func (m *MeteoTask) TaskHandler() {
 					}
 					err = db.AddMeteoData(data)
 					if err != nil {
-						logger.Errorf("Fail to add to database data from sensor \"%s\" (%s)",
+						logger.Errorf("Fail to add to database data from sensor %s (%s)",
 							sensor.Name, err.Error())
 					}
 				}

@@ -22,7 +22,7 @@ import (
 	"net/http"
 
 	"github.com/futcamp/controller/modules/meteo"
-	"github.com/futcamp/controller/net/handlers/nettools"
+	"github.com/futcamp/controller/net/handlers/netdata"
 	"github.com/futcamp/controller/utils/configs"
 	"github.com/pkg/errors"
 )
@@ -30,26 +30,29 @@ import (
 type MeteoHandler struct {
 	MeteoCfg *configs.MeteoConfigs
 	Meteo    *meteo.MeteoStation
+	MeteoDB  *meteo.MeteoDatabase
 }
 
 // NewMeteoHandler make new struct
-func NewMeteoHandler(mCfg *configs.MeteoConfigs, meteo *meteo.MeteoStation) *MeteoHandler {
+func NewMeteoHandler(mCfg *configs.MeteoConfigs, meteo *meteo.MeteoStation,
+	mdb *meteo.MeteoDatabase) *MeteoHandler {
 	return &MeteoHandler{
 		MeteoCfg: mCfg,
 		Meteo:    meteo,
+		MeteoDB:  mdb,
 	}
 }
 
 // ProcessMeteoAllHandler display actual meteo data for all sensors
 func (m *MeteoHandler) ProcessMeteoAllHandler(req *http.Request) ([]byte, error) {
-	data := &nettools.RestResponse{}
+	data := &netdata.RestResponse{}
 
 	if req.Method != http.MethodGet {
 		return nil, errors.New("Bad request method")
 	}
 
 	sensors := m.Meteo.AllSensors()
-	nettools.SetRestResponse(data, "meteo", "Meteo Station", sensors, req)
+	netdata.SetRestResponse(data, "meteo", "Meteo Station", sensors, req)
 
 	jData, _ := json.Marshal(data)
 	return jData, nil
@@ -57,24 +60,23 @@ func (m *MeteoHandler) ProcessMeteoAllHandler(req *http.Request) ([]byte, error)
 
 // ProcessMeteoDBHandler display meteo data for concrete sensor by date
 func (m *MeteoHandler) ProcessMeteoDBHandler(sensor string, date string, req *http.Request) ([]byte, error) {
-	data := &nettools.RestResponse{}
+	data := &netdata.RestResponse{}
 
 	if req.Method != http.MethodGet {
 		return nil, errors.New("Bad request method")
 	}
 
-	db := meteo.NewMeteoDB(m.MeteoCfg.Settings().Database.Path)
-	err := db.Load()
+	err := m.MeteoDB.Load()
 	if err != nil {
 		return nil, err
 	}
 
-	sensors, err := db.MeteoDataByDate(sensor, date)
-	db.Unload()
+	sensors, err := m.MeteoDB.MeteoDataByDate(sensor, date)
+	m.MeteoDB.Unload()
 	if err != nil {
 		return nil, err
 	}
-	nettools.SetRestResponse(data, "meteo", "Meteo Station", sensors, req)
+	netdata.SetRestResponse(data, "meteo", "Meteo Station", sensors, req)
 
 	jData, _ := json.Marshal(data)
 	return jData, nil
@@ -86,14 +88,13 @@ func (m *MeteoHandler) ProcessMeteoDBClearHandler(sensor string, req *http.Reque
 		return errors.New("Bad request method")
 	}
 
-	db := meteo.NewMeteoDB(m.MeteoCfg.Settings().Database.Path)
-	err := db.Load()
+	err := m.MeteoDB.Load()
 	if err != nil {
 		return err
 	}
 
-	err = db.MeteoDataClear(sensor)
-	db.Unload()
+	err = m.MeteoDB.MeteoDataClear(sensor)
+	m.MeteoDB.Unload()
 	if err != nil {
 		return err
 	}

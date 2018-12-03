@@ -15,7 +15,7 @@
 /*
 /*******************************************************************/
 
-package nettools
+package netdata
 
 import (
 	"crypto/sha512"

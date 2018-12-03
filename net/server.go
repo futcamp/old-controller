@@ -109,7 +109,7 @@ func (w *WebServer) MeteoHandler(writer http.ResponseWriter, req *http.Request) 
 	resp := NewResponse(&writer, configs.AppName)
 	args := strings.Split(req.RequestURI, "/")
 
-	if len(args) == 6 {
+	if len(args) == 6 && args[5] != "" {
 		// Clear all sensor meteo data
 		if args[5] == "clear" {
 			err := w.MeteoHdl.ProcessMeteoDBClearHandler(args[4], req)

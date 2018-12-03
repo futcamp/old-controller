@@ -34,12 +34,14 @@ type Application struct {
 	Meteo     *meteo.MeteoStation
 	Server    *net.WebServer
 	MeteoTask *meteo.MeteoTask
+	Locker    *utils.Locker
+	MeteoDB   *meteo.MeteoDatabase
 }
 
 // NewApplication make new struct
 func NewApplication(log *utils.Logger, cfg *configs.Configs, mCfg *configs.MeteoConfigs,
 	meteo *meteo.MeteoStation, srv *net.WebServer, mTask *meteo.MeteoTask,
-	lTask *utils.LogTask) *Application {
+	lTask *utils.LogTask, lck *utils.Locker, mdb *meteo.MeteoDatabase) *Application {
 	return &Application{
 		Log:       log,
 		Cfg:       cfg,
@@ -48,6 +50,8 @@ func NewApplication(log *utils.Logger, cfg *configs.Configs, mCfg *configs.Meteo
 		Server:    srv,
 		MeteoTask: mTask,
 		LogTask:   lTask,
+		Locker:    lck,
+		MeteoDB:   mdb,
 	}
 }
 
@@ -78,6 +82,12 @@ func (a *Application) Start() {
 			logger.Infof("New sensor %s type %s IP %s channel %d",
 				sensor.Name, sensor.Type, sensor.IP, sensor.Channel)
 		}
+
+		// Set path to db
+		a.MeteoDB.SetDBFile(utils.MeteoDBPath)
+
+		// Add db lock
+		a.Locker.AddLock(utils.MeteoDBName)
 
 		// Start task
 		go a.MeteoTask.Start()

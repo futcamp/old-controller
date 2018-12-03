@@ -21,7 +21,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/futcamp/controller/net/handlers/nettools"
+	"github.com/futcamp/controller/net/handlers/netdata"
 	"github.com/futcamp/controller/utils"
 )
 
@@ -38,14 +38,14 @@ func NewLogHandler(log *utils.Logger) *LogHandler {
 
 // ExistingLogsList get existing log files list
 func (l *LogHandler) ProcessExistingLogsList(req *http.Request) ([]byte, error) {
-	data := &nettools.RestResponse{}
+	data := &netdata.RestResponse{}
 
 	logFiles, err := l.Log.LogsList(utils.LogPath)
 	if err != nil {
 		return nil, err
 	}
 
-	nettools.SetRestResponse(data, "logger", "Application Logger", logFiles, req)
+	netdata.SetRestResponse(data, "logger", "Application Logger", logFiles, req)
 
 	jData, _ := json.Marshal(data)
 	return jData, nil
@@ -53,14 +53,14 @@ func (l *LogHandler) ProcessExistingLogsList(req *http.Request) ([]byte, error) 
 
 // ExistingLogsList get existing log files list
 func (l *LogHandler) ProcessLogsByDate(date string, req *http.Request) ([]byte, error) {
-	data := &nettools.RestResponse{}
+	data := &netdata.RestResponse{}
 
 	logs, err := l.Log.ReadLogByDate(utils.LogPath, date)
 	if err != nil {
 		return nil, err
 	}
 
-	nettools.SetRestResponse(data, "logger", "Application Logger", logs, req)
+	netdata.SetRestResponse(data, "logger", "Application Logger", logs, req)
 
 	jData, _ := json.Marshal(data)
 	return jData, nil

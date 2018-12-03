@@ -34,12 +34,14 @@ func main() {
 
 	container.Provide(utils.NewLogger)
 	container.Provide(utils.NewLogTask)
+	container.Provide(utils.NewLocker)
 	container.Provide(handlers.NewLogHandler)
 	container.Provide(configs.NewConfigs)
 	container.Provide(configs.NewMeteoConfigs)
 	container.Provide(meteo.NewMeteoStation)
 	container.Provide(meteo.NewMeteoTask)
 	container.Provide(handlers.NewMeteoHandler)
+	container.Provide(meteo.NewMeteoDatabase)
 	container.Provide(net.NewWebServer)
 	container.Provide(NewApplication)
 

@@ -18,6 +18,7 @@
 package meteo
 
 import (
+	"github.com/pkg/errors"
 	"sync"
 
 	"github.com/google/logger"
@@ -44,6 +45,7 @@ type Sensor struct {
 	Channel int
 	Mtx     sync.Mutex
 	Data    MeteoData
+	Online  bool
 }
 
 type MeteoStation struct {
@@ -74,39 +76,43 @@ func (s *Sensor) MeteoData() MeteoData {
 
 // NewMeteoStation make new struct
 func NewMeteoStation() *MeteoStation {
-	return &MeteoStation{}
+	m := &MeteoStation{}
+
+	m.Sensors = make(map[string]*Sensor)
+
+	return m
 }
 
 // AddSensor add new meteo sensor
 func (m *MeteoStation) AddSensor(name string, sType string, ip string, ch int) {
-	if m.Sensors == nil {
-		m.Sensors = make(map[string]*Sensor)
-	}
-
 	sensor := &Sensor{
 		Name:    name,
 		Type:    sType,
 		IP:      ip,
 		Channel: ch,
+		Online:  true,
 	}
 
 	m.Sensors[name] = sensor
 }
 
 // Sensor get meteo data from sensor
-func (m *MeteoStation) Sensor(name string) DisplayedSensor {
+func (m *MeteoStation) Sensor(name string) (DisplayedSensor, error) {
+	var dSensor DisplayedSensor
+
 	sensor := m.Sensors[name]
+	if sensor == nil {
+		return dSensor, errors.New("sensor not found")
+	}
 	data := sensor.MeteoData()
 
-	dSensor := DisplayedSensor{
-		Name:     sensor.Name,
-		Type:     sensor.Type,
-		Temp:     data.Temp,
-		Humidity: data.Humidity,
-		Pressure: data.Pressure,
-	}
+	dSensor.Name = sensor.Name
+	dSensor.Type = sensor.Type
+	dSensor.Temp = data.Temp
+	dSensor.Humidity = data.Humidity
+	dSensor.Pressure = data.Pressure
 
-	return dSensor
+	return dSensor, nil
 }
 
 // AllSensors get all sensors list
@@ -136,8 +142,16 @@ func (m *MeteoStation) SyncData() {
 		ctrl := NewWiFiController(sensor.Type, sensor.IP, sensor.Channel)
 		data, err := ctrl.SyncMeteoData()
 		if err != nil {
-			logger.Errorf("Fail to sync meteo data with sensor %s", sensor.Name)
+			if sensor.Online {
+				sensor.Online = false
+				logger.Errorf("Fail to sync meteo data with sensor %s", sensor.Name)
+			}
 			continue
+		}
+
+		if !sensor.Online {
+			sensor.Online = true
+			logger.Errorf("Sensor %s is now online", sensor.Name)
 		}
 
 		sensor.SetMeteoData(&MeteoData{

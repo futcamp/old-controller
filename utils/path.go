@@ -21,6 +21,11 @@ package utils
 const (
 	ConfigsPath      = "/etc/fc/futcamp.conf"
 	MeteoConfigsPath = "/etc/fc/meteo.conf"
-	Database         = "/root/meteo.db"
+	MeteoDBPath      = "/root/meteo.db"
 	LogPath          = "/var/log/fc/"
+)
+
+// Database names
+const (
+	MeteoDBName = "meteodb"
 )

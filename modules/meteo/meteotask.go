@@ -32,6 +32,7 @@ const (
 type MeteoTask struct {
 	Cfg             *configs.MeteoConfigs
 	Meteo           *MeteoStation
+	MeteoDB         *MeteoDatabase
 	ReqTimer        *time.Timer
 	DisplaysCounter int
 	SensorsCounter  int
@@ -40,10 +41,12 @@ type MeteoTask struct {
 }
 
 // NewMeteoTask make new struct
-func NewMeteoTask(conf *configs.MeteoConfigs, meteo *MeteoStation) *MeteoTask {
+func NewMeteoTask(conf *configs.MeteoConfigs, meteo *MeteoStation,
+	mdb *MeteoDatabase) *MeteoTask {
 	return &MeteoTask{
 		Cfg:             conf,
 		Meteo:           meteo,
+		MeteoDB:         mdb,
 		DisplaysCounter: 0,
 		SensorsCounter:  0,
 		DatabaseCounter: 0,
@@ -71,7 +74,11 @@ func (m *MeteoTask) TaskHandler() {
 			for _, display := range m.Cfg.Settings().Displays {
 				if display.Enable {
 					for _, sensor := range display.Sensors {
-						data := m.Meteo.Sensor(sensor)
+						data, err := m.Meteo.Sensor(sensor)
+						if err != nil {
+							logger.Errorf("Sensor %s not found", sensor)
+							continue
+						}
 
 						ctrlSensor := &CtrlMeteoData{
 							Temp:     data.Temp,
@@ -81,7 +88,7 @@ func (m *MeteoTask) TaskHandler() {
 
 						// Send data to controller
 						ctrl := NewWiFiController("", display.IP, 0)
-						err := ctrl.DisplayMeteoData(sensor, ctrlSensor)
+						err = ctrl.DisplayMeteoData(sensor, ctrlSensor)
 						if err != nil {
 							logger.Errorf("Fail to display data on %s from sensor %s",
 								display.Name, sensor)
@@ -98,8 +105,7 @@ func (m *MeteoTask) TaskHandler() {
 			hour := time.Now().Hour()
 
 			if hour != m.LastHour {
-				db := NewMeteoDB(m.Cfg.Settings().Database.Path)
-				err := db.Load()
+				err := m.MeteoDB.Load()
 				if err != nil {
 					logger.Errorf("Fail to load %s database", "Meteo")
 					continue
@@ -113,13 +119,13 @@ func (m *MeteoTask) TaskHandler() {
 						Pressure: sensor.Pressure,
 						Altitude: sensor.Pressure,
 					}
-					err = db.AddMeteoData(data)
+					err = m.MeteoDB.AddMeteoData(data)
 					if err != nil {
 						logger.Errorf("Fail to add to database data from sensor %s")
 					}
 				}
 
-				db.Unload()
+				m.MeteoDB.Unload()
 				m.LastHour = hour
 			}
 		}

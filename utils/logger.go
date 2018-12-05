@@ -19,7 +19,6 @@ package utils
 
 import (
 	"bufio"
-	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -30,8 +29,8 @@ import (
 )
 
 type Logger struct {
-	logFile *os.File
-	logger  *logger.Logger
+	LogFile *os.File
+	Log  *logger.Logger
 }
 
 // NewLogger make new struct
@@ -45,14 +44,13 @@ func (l *Logger) Init(path string) {
 	date := time.Now().Format("2006-01-02")
 
 	// Configuring log module
-	l.logFile, err = os.OpenFile(fmt.Sprintf("%s%s.log", path, date), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0660)
+	l.LogFile, err = os.OpenFile(fmt.Sprintf("%s%s.log", path, date), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0660)
 	if err != nil {
 		fmt.Println("Fail to open log file!")
 		return
 	}
 
-	var verbose = flag.Bool("verbose", true, "print info level logs to stdout")
-	l.logger = logger.Init("FutcampLogger", *verbose, true, l.logFile)
+	l.Log = logger.Init("FutcampLogger", true, true, l.LogFile)
 }
 
 // LogsList reading logs list from path
@@ -96,7 +94,10 @@ func (l *Logger) ReadLogByDate(path string, date string) ([]string, error) {
 
 // Free unload logger module
 func (l *Logger) Free() {
-	if l.logger != nil {
-		l.logger.Close()
+	if l.Log != nil {
+		l.Log.Close()
+	}
+	if l.LogFile != nil {
+		l.LogFile.Close()
 	}
 }

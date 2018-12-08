@@ -19,6 +19,7 @@ package main
 
 import (
 	"github.com/futcamp/controller/modules/meteo"
+	"github.com/futcamp/controller/monitoring"
 	"github.com/futcamp/controller/net"
 	"github.com/futcamp/controller/utils"
 	"github.com/futcamp/controller/utils/configs"
@@ -27,31 +28,36 @@ import (
 )
 
 type Application struct {
-	Log       *utils.Logger
-	LogTask   *utils.LogTask
-	Cfg       *configs.Configs
-	MeteoCfg  *configs.MeteoConfigs
-	Meteo     *meteo.MeteoStation
-	Server    *net.WebServer
-	MeteoTask *meteo.MeteoTask
-	Locker    *utils.Locker
-	MeteoDB   *meteo.MeteoDatabase
+	Log         *utils.Logger
+	LogTask     *utils.LogTask
+	Cfg         *configs.Configs
+	MeteoCfg    *configs.MeteoConfigs
+	Meteo       *meteo.MeteoStation
+	Server      *net.WebServer
+	MeteoTask   *meteo.MeteoTask
+	Locker      *utils.Locker
+	MeteoDB     *meteo.MeteoDatabase
+	Monitor     *monitoring.DeviceMonitor
+	MonitorTask *monitoring.MonitorTask
 }
 
 // NewApplication make new struct
 func NewApplication(log *utils.Logger, cfg *configs.Configs, mCfg *configs.MeteoConfigs,
 	meteo *meteo.MeteoStation, srv *net.WebServer, mTask *meteo.MeteoTask,
-	lTask *utils.LogTask, lck *utils.Locker, mdb *meteo.MeteoDatabase) *Application {
+	lTask *utils.LogTask, lck *utils.Locker, mdb *meteo.MeteoDatabase,
+	monitor *monitoring.DeviceMonitor, monitorTask *monitoring.MonitorTask) *Application {
 	return &Application{
-		Log:       log,
-		Cfg:       cfg,
-		MeteoCfg:  mCfg,
-		Meteo:     meteo,
-		Server:    srv,
-		MeteoTask: mTask,
-		LogTask:   lTask,
-		Locker:    lck,
-		MeteoDB:   mdb,
+		Log:         log,
+		Cfg:         cfg,
+		MeteoCfg:    mCfg,
+		Meteo:       meteo,
+		Server:      srv,
+		MeteoTask:   mTask,
+		LogTask:     lTask,
+		Locker:      lck,
+		MeteoDB:     mdb,
+		Monitor:     monitor,
+		MonitorTask: monitorTask,
 	}
 }
 
@@ -79,8 +85,16 @@ func (a *Application) Start() {
 		// Add meteo sensors
 		for _, sensor := range a.MeteoCfg.Settings().Sensors {
 			a.Meteo.AddSensor(sensor.Name, sensor.Type, sensor.IP, sensor.Channel)
+			a.Monitor.AddDevice(sensor.Name, "Sensor", sensor.IP)
 			logger.Infof("New sensor %s type %s IP %s channel %d",
 				sensor.Name, sensor.Type, sensor.IP, sensor.Channel)
+		}
+
+		// Add monitoring for displays
+		for _, display := range a.MeteoCfg.Settings().Displays {
+			if display.Enable {
+				a.Monitor.AddDevice(display.Name, "Display", display.IP)
+			}
 		}
 
 		// Set path to db
@@ -95,6 +109,9 @@ func (a *Application) Start() {
 
 	// Start logger task
 	go a.LogTask.Start()
+
+	// Start monitoring
+	go a.MonitorTask.Start()
 
 	// Start web server
 	logger.Infof("Starting Web server at %s:%d...", a.Cfg.Settings().Server.IP,

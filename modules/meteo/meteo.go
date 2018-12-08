@@ -18,19 +18,10 @@
 package meteo
 
 import (
-	"github.com/pkg/errors"
+	"errors"
 	"sync"
-
-	"github.com/google/logger"
 )
 
-type DisplayedSensor struct {
-	Name     string `json:"name"`
-	Type     string `json:"type"`
-	Temp     int    `json:"temp"`
-	Humidity int    `json:"humidity"`
-	Pressure int    `json:"pressure"`
-}
 
 type MeteoData struct {
 	Temp     int
@@ -45,7 +36,6 @@ type Sensor struct {
 	Channel int
 	Mtx     sync.Mutex
 	Data    MeteoData
-	Online  bool
 }
 
 type MeteoStation struct {
@@ -90,74 +80,29 @@ func (m *MeteoStation) AddSensor(name string, sType string, ip string, ch int) {
 		Type:    sType,
 		IP:      ip,
 		Channel: ch,
-		Online:  true,
 	}
 
 	m.Sensors[name] = sensor
 }
 
-// Sensor get meteo data from sensor
-func (m *MeteoStation) Sensor(name string) (DisplayedSensor, error) {
-	var dSensor DisplayedSensor
+// Sensor get meteo sensor
+func (m *MeteoStation) Sensor(name string) (*Sensor, error) {
+	s := m.Sensors[name]
 
-	sensor := m.Sensors[name]
-	if sensor == nil {
-		return dSensor, errors.New("sensor not found")
+	if s == nil {
+		return nil, errors.New("sensor not found")
 	}
-	data := sensor.MeteoData()
 
-	dSensor.Name = sensor.Name
-	dSensor.Type = sensor.Type
-	dSensor.Temp = data.Temp
-	dSensor.Humidity = data.Humidity
-	dSensor.Pressure = data.Pressure
-
-	return dSensor, nil
+	return s, nil
 }
 
 // AllSensors get all sensors list
-func (m *MeteoStation) AllSensors() []DisplayedSensor {
-	var sensors []DisplayedSensor
+func (m *MeteoStation) AllSensors() []*Sensor {
+	var sensors []*Sensor
 
 	for _, sensor := range m.Sensors {
-		data := sensor.MeteoData()
-
-		dSensor := DisplayedSensor{
-			Name:     sensor.Name,
-			Type:     sensor.Type,
-			Temp:     data.Temp,
-			Humidity: data.Humidity,
-			Pressure: data.Pressure,
-		}
-
-		sensors = append(sensors, dSensor)
+		sensors = append(sensors, sensor)
 	}
 
 	return sensors
-}
-
-// SyncData get actual data from all wi-fi sensors
-func (m *MeteoStation) SyncData() {
-	for _, sensor := range m.Sensors {
-		ctrl := NewWiFiController(sensor.Type, sensor.IP, sensor.Channel)
-		data, err := ctrl.SyncMeteoData()
-		if err != nil {
-			if sensor.Online {
-				sensor.Online = false
-				logger.Errorf("Fail to sync meteo data with sensor %s", sensor.Name)
-			}
-			continue
-		}
-
-		if !sensor.Online {
-			sensor.Online = true
-			logger.Errorf("Sensor %s is now online", sensor.Name)
-		}
-
-		sensor.SetMeteoData(&MeteoData{
-			Temp:     data.Temp,
-			Humidity: data.Humidity,
-			Pressure: data.Pressure,
-		})
-	}
 }

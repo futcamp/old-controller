@@ -65,7 +65,21 @@ func (m *MeteoTask) TaskHandler() {
 		// Get actual data from controller
 		if m.SensorsCounter == m.Cfg.Settings().Delays.Sensors {
 			m.SensorsCounter = 0
-			m.Meteo.SyncData()
+			sensors := m.Meteo.AllSensors()
+
+			for _, sensor := range sensors {
+				ctrl := NewWiFiController(sensor.Type, sensor.IP, sensor.Channel)
+				data, err := ctrl.SyncMeteoData()
+				if err != nil {
+					continue
+				}
+
+				sensor.SetMeteoData(&MeteoData{
+					Temp:     data.Temp,
+					Humidity: data.Humidity,
+					Pressure: data.Pressure,
+				})
+			}
 		}
 
 		// Display actual data on LCDs
@@ -73,12 +87,13 @@ func (m *MeteoTask) TaskHandler() {
 			m.DisplaysCounter = 0
 			for _, display := range m.Cfg.Settings().Displays {
 				if display.Enable {
-					for _, sensor := range display.Sensors {
-						data, err := m.Meteo.Sensor(sensor)
+					for _, sensorName := range display.Sensors {
+						sensor, err := m.Meteo.Sensor(sensorName)
 						if err != nil {
-							logger.Errorf("Sensor %s not found", sensor)
+							logger.Errorf("Sensor %s not found", sensorName)
 							continue
 						}
+						data := sensor.MeteoData()
 
 						ctrlSensor := &CtrlMeteoData{
 							Temp:     data.Temp,
@@ -87,11 +102,10 @@ func (m *MeteoTask) TaskHandler() {
 						}
 
 						// Send data to controller
-						ctrl := NewWiFiController("", display.IP, 0)
-						err = ctrl.DisplayMeteoData(sensor, ctrlSensor)
+						ctrl := NewWiFiControllerDisplay(display.IP)
+						err = ctrl.DisplayMeteoData(sensorName, ctrlSensor)
 						if err != nil {
-							logger.Errorf("Fail to display data on %s from sensor %s",
-								display.Name, sensor)
+							continue
 						}
 					}
 
@@ -112,12 +126,14 @@ func (m *MeteoTask) TaskHandler() {
 				}
 
 				for _, sensor := range m.Meteo.AllSensors() {
+					mdata := sensor.MeteoData()
+
 					data := &MeteoDBData{
 						Sensor:   sensor.Name,
-						Temp:     sensor.Temp,
-						Humidity: sensor.Humidity,
-						Pressure: sensor.Pressure,
-						Altitude: sensor.Pressure,
+						Temp:     mdata.Temp,
+						Humidity: mdata.Humidity,
+						Pressure: mdata.Pressure,
+						Altitude: mdata.Pressure,
 					}
 					err = m.MeteoDB.AddMeteoData(data)
 					if err != nil {

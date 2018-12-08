@@ -27,6 +27,14 @@ import (
 	"github.com/pkg/errors"
 )
 
+type DisplayedSensor struct {
+	Name     string `json:"name"`
+	Type     string `json:"type"`
+	Temp     int    `json:"temp"`
+	Humidity int    `json:"humidity"`
+	Pressure int    `json:"pressure"`
+}
+
 type MeteoHandler struct {
 	MeteoCfg *configs.MeteoConfigs
 	Meteo    *meteo.MeteoStation
@@ -45,13 +53,26 @@ func NewMeteoHandler(mCfg *configs.MeteoConfigs, meteo *meteo.MeteoStation,
 
 // ProcessMeteoAllHandler display actual meteo data for all sensors
 func (m *MeteoHandler) ProcessMeteoAllHandler(req *http.Request) ([]byte, error) {
+	var sensors []DisplayedSensor
 	data := &netdata.RestResponse{}
 
 	if req.Method != http.MethodGet {
 		return nil, errors.New("Bad request method")
 	}
 
-	sensors := m.Meteo.AllSensors()
+	for _, sensor := range m.Meteo.AllSensors() {
+		mdata := sensor.MeteoData()
+
+		s := DisplayedSensor{
+			Name:     sensor.Name,
+			Temp:     mdata.Temp,
+			Humidity: mdata.Humidity,
+			Pressure: mdata.Pressure,
+		}
+
+		sensors = append(sensors, s)
+	}
+
 	netdata.SetRestResponse(data, "meteo", "Meteo Station", sensors, req)
 
 	jData, _ := json.Marshal(data)

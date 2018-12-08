@@ -21,6 +21,7 @@ import (
 	"fmt"
 
 	"github.com/futcamp/controller/modules/meteo"
+	"github.com/futcamp/controller/monitoring"
 	"github.com/futcamp/controller/net"
 	"github.com/futcamp/controller/net/handlers"
 	"github.com/futcamp/controller/utils"
@@ -41,6 +42,8 @@ func main() {
 	container.Provide(meteo.NewMeteoStation)
 	container.Provide(meteo.NewMeteoTask)
 	container.Provide(handlers.NewMeteoHandler)
+	container.Provide(monitoring.NewDeviceMonitor)
+	container.Provide(monitoring.NewMonitorTask)
 	container.Provide(meteo.NewMeteoDatabase)
 	container.Provide(net.NewWebServer)
 	container.Provide(NewApplication)

@@ -84,9 +84,12 @@ func (a *Application) Start() {
 
 		// Add meteo sensors
 		for _, sensor := range a.MeteoCfg.Settings().Sensors {
+			if !sensor.Enable {
+				continue
+			}
 			a.Meteo.AddSensor(sensor.Name, sensor.Type, sensor.IP, sensor.Channel)
 			a.Monitor.AddDevice(sensor.Name, "Sensor", sensor.IP)
-			logger.Infof("New sensor %s type %s IP %s channel %d",
+			logger.Infof("New sensor %s type %s ip %s channel %d",
 				sensor.Name, sensor.Type, sensor.IP, sensor.Channel)
 		}
 
@@ -96,9 +99,6 @@ func (a *Application) Start() {
 				a.Monitor.AddDevice(display.Name, "Display", display.IP)
 			}
 		}
-
-		// Set path to db
-		a.MeteoDB.SetDBFile(utils.MeteoDBPath)
 
 		// Add db lock
 		a.Locker.AddLock(utils.MeteoDBName)

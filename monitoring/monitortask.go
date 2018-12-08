@@ -27,7 +27,7 @@ const (
 
 // MeteoTask meteo task struct
 type MonitorTask struct {
-	Monitor *DeviceMonitor
+	Monitor         *DeviceMonitor
 	ReqTimer        *time.Timer
 	DisplaysCounter int
 	SensorsCounter  int
@@ -38,7 +38,7 @@ type MonitorTask struct {
 // NewMonitorTask make new struct
 func NewMonitorTask(monitor *DeviceMonitor) *MonitorTask {
 	return &MonitorTask{
-		Monitor:monitor,
+		Monitor: monitor,
 	}
 }
 

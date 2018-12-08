@@ -24,6 +24,7 @@ import (
 	"github.com/futcamp/controller/modules/meteo"
 	"github.com/futcamp/controller/net/handlers/netdata"
 	"github.com/futcamp/controller/utils/configs"
+
 	"github.com/pkg/errors"
 )
 
@@ -65,6 +66,7 @@ func (m *MeteoHandler) ProcessMeteoAllHandler(req *http.Request) ([]byte, error)
 
 		s := DisplayedSensor{
 			Name:     sensor.Name,
+			Type:     sensor.Type,
 			Temp:     mdata.Temp,
 			Humidity: mdata.Humidity,
 			Pressure: mdata.Pressure,

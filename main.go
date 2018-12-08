@@ -44,6 +44,7 @@ func main() {
 	container.Provide(handlers.NewMeteoHandler)
 	container.Provide(monitoring.NewDeviceMonitor)
 	container.Provide(monitoring.NewMonitorTask)
+	container.Provide(handlers.NewMonitorHandler)
 	container.Provide(meteo.NewMeteoDatabase)
 	container.Provide(net.NewWebServer)
 	container.Provide(NewApplication)

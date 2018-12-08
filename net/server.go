@@ -39,18 +39,20 @@ type WebServer struct {
 	Meteo    *meteo.MeteoStation
 	MeteoHdl *handlers.MeteoHandler
 	LogHdl   *handlers.LogHandler
+	MonitorHdl *handlers.MonitorHandler
 }
 
 // NewWebServer make new struct
 func NewWebServer(cfg *configs.Configs, meteo *meteo.MeteoStation,
 	mCfg *configs.MeteoConfigs, mh *handlers.MeteoHandler,
-	lh *handlers.LogHandler) *WebServer {
+	lh *handlers.LogHandler, mnh *handlers.MonitorHandler) *WebServer {
 	return &WebServer{
 		Cfg:      cfg,
 		MeteoCfg: mCfg,
 		Meteo:    meteo,
 		MeteoHdl: mh,
 		LogHdl:   lh,
+		MonitorHdl:mnh,
 	}
 }
 
@@ -60,6 +62,7 @@ func (w *WebServer) Start(ip string, port int) error {
 
 	mux.HandleFunc("/", w.IndexHandler)
 	mux.HandleFunc(fmt.Sprintf("/api/%s/log/", configs.ApiVersion), w.LogHandler)
+	mux.HandleFunc(fmt.Sprintf("/api/%s/monitoring/", configs.ApiVersion), w.MonitorHandler)
 	if w.Cfg.Settings().Modules.Meteo {
 		mux.HandleFunc(fmt.Sprintf("/api/%s/meteo/", configs.ApiVersion), w.MeteoHandler)
 	}
@@ -98,6 +101,7 @@ func (w *WebServer) LogHandler(writer http.ResponseWriter, req *http.Request) {
 
 	logs, err := w.LogHdl.ProcessExistingLogsList(req)
 	if err != nil {
+		logger.Error(err.Error())
 		resp.SendFail(err.Error())
 		return
 	}
@@ -142,4 +146,18 @@ func (w *WebServer) MeteoHandler(writer http.ResponseWriter, req *http.Request) 
 	}
 	resp.Send(string(data))
 	return
+}
+
+// MonitorHandler devices monitoring handler
+func (w *WebServer) MonitorHandler(writer http.ResponseWriter, req *http.Request) {
+	resp := NewResponse(&writer, configs.AppName)
+
+	logs, err := w.MonitorHdl.ProcessMonitoring(req)
+	if err != nil {
+		logger.Error(err.Error())
+		resp.SendFail(err.Error())
+		return
+	}
+
+	resp.Send(string(logs))
 }

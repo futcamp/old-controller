@@ -18,19 +18,40 @@
 package monitoring
 
 import (
+	"sync"
+
 	"github.com/google/logger"
 )
 
 type Device struct {
-	Name   string
-	Type   string
-	IP     string
-	Status bool
+	Name string
+	Type string
+	IP   string
+	Mtx  sync.Mutex
+	Stat bool
 }
 
 type DeviceMonitor struct {
 	Devices    []*Device
 	FirstCheck bool
+}
+
+// Status get device status
+func (d *Device) Status() bool {
+	var s bool
+
+	d.Mtx.Lock()
+	s = d.Stat
+	d.Mtx.Unlock()
+
+	return s
+}
+
+// SetStatus set device status
+func (d *Device) SetStatus(status bool) {
+	d.Mtx.Lock()
+	d.Stat = status
+	d.Mtx.Unlock()
 }
 
 // NewDeviceMonitor make new struct
@@ -40,15 +61,20 @@ func NewDeviceMonitor() *DeviceMonitor {
 	}
 }
 
-// AddDevice add device
+// AddDevice add new device
 func (d *DeviceMonitor) AddDevice(name string, devType string, ip string) {
 	dev := &Device{
-		Name:   name,
-		IP:     ip,
-		Type:   devType,
-		Status: false,
+		Name: name,
+		IP:   ip,
+		Type: devType,
+		Stat: false,
 	}
 	d.Devices = append(d.Devices, dev)
+}
+
+// AllDevices get devices list
+func (d *DeviceMonitor) AllDevices() *[]*Device {
+	return &d.Devices
 }
 
 // CheckDevices check states of devices
@@ -58,14 +84,14 @@ func (d *DeviceMonitor) CheckDevices() {
 		status := wdev.DeviceStatus()
 
 		// Status was changed
-		if status != device.Status {
-			device.Status = status
+		if status != device.Stat {
+			device.SetStatus(status)
 			d.SendNotify(device)
 		} else if d.FirstCheck {
 			d.SendNotify(device)
 		}
 	}
-	
+
 	if d.FirstCheck {
 		d.FirstCheck = false
 	}
@@ -75,7 +101,7 @@ func (d *DeviceMonitor) CheckDevices() {
 func (d *DeviceMonitor) SendNotify(device *Device) {
 	var status string
 
-	if device.Status {
+	if device.Status() {
 		status = "Online"
 	} else {
 		status = "Offline"

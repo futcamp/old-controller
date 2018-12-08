@@ -33,6 +33,7 @@ type MeteoTask struct {
 	Cfg             *configs.MeteoConfigs
 	Meteo           *MeteoStation
 	MeteoDB         *MeteoDatabase
+	MeteoCfg        *configs.MeteoConfigs
 	ReqTimer        *time.Timer
 	DisplaysCounter int
 	SensorsCounter  int
@@ -42,11 +43,12 @@ type MeteoTask struct {
 
 // NewMeteoTask make new struct
 func NewMeteoTask(conf *configs.MeteoConfigs, meteo *MeteoStation,
-	mdb *MeteoDatabase) *MeteoTask {
+	mdb *MeteoDatabase, mcfg *configs.MeteoConfigs) *MeteoTask {
 	return &MeteoTask{
 		Cfg:             conf,
 		Meteo:           meteo,
 		MeteoDB:         mdb,
+		MeteoCfg:        mcfg,
 		DisplaysCounter: 0,
 		SensorsCounter:  0,
 		DatabaseCounter: 0,
@@ -119,7 +121,8 @@ func (m *MeteoTask) TaskHandler() {
 			hour := time.Now().Hour()
 
 			if hour != m.LastHour {
-				err := m.MeteoDB.Load()
+				dbCfg := m.MeteoCfg.Settings().Database
+				err := m.MeteoDB.Connect(dbCfg.IP, dbCfg.User, dbCfg.Password, dbCfg.Base)
 				if err != nil {
 					logger.Errorf("Fail to load %s database", "Meteo")
 					continue
@@ -141,7 +144,7 @@ func (m *MeteoTask) TaskHandler() {
 					}
 				}
 
-				m.MeteoDB.Unload()
+				m.MeteoDB.Close()
 				m.LastHour = hour
 			}
 		}

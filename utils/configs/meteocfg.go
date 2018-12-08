@@ -28,8 +28,11 @@ const (
 	ModName = "meteo"
 )
 
-type MeteoDB struct {
-	Path string
+type MeteoDatabase struct {
+	IP       string
+	User     string
+	Password string
+	Base     string
 }
 
 type MeteoDelays struct {
@@ -50,13 +53,14 @@ type MeteoSensor struct {
 	Type    string
 	IP      string
 	Channel int
+	Enable  bool
 }
 
 type MeteoSettings struct {
 	Delays   MeteoDelays
 	Sensors  []MeteoSensor
 	Displays []MeteoDisplay
-	Database MeteoDB
+	Database MeteoDatabase
 }
 
 type MeteoConfigs struct {

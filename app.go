@@ -69,6 +69,7 @@ func (a *Application) Start() {
 	err := a.Cfg.LoadFromFile(utils.ConfigsPath)
 	if err != nil {
 		logger.Errorf("Fail to load %s configs", "main")
+		logger.Error(err.Error())
 		return
 	}
 	logger.Infof("Configs %s was loaded", "main")
@@ -77,7 +78,8 @@ func (a *Application) Start() {
 		// Load meteo configs
 		err = a.MeteoCfg.LoadFromFile(utils.MeteoConfigsPath)
 		if err != nil {
-			logger.Infof("Fail to load %s configs", "meteo")
+			logger.Errorf("Fail to load %s configs", "meteo")
+			logger.Error(err.Error())
 			return
 		}
 		logger.Infof("Configs %s was loaded", "meteo")
@@ -119,6 +121,7 @@ func (a *Application) Start() {
 	err = a.Server.Start(a.Cfg.Settings().Server.IP, a.Cfg.Settings().Server.Port)
 	if err != nil {
 		logger.Error("Fail to start WebServer")
+		logger.Error(err.Error())
 	}
 
 	logger.Info("Application was finished")

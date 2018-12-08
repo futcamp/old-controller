@@ -125,6 +125,7 @@ func (m *MeteoTask) TaskHandler() {
 				err := m.MeteoDB.Connect(dbCfg.IP, dbCfg.User, dbCfg.Password, dbCfg.Base)
 				if err != nil {
 					logger.Errorf("Fail to load %s database", "Meteo")
+					logger.Error(err.Error())
 					continue
 				}
 
@@ -140,7 +141,9 @@ func (m *MeteoTask) TaskHandler() {
 					}
 					err = m.MeteoDB.AddMeteoData(data)
 					if err != nil {
-						logger.Errorf("Fail to add to database data from sensor %s")
+						logger.Errorf("Fail to add to database data from sensor %s",
+							sensor.Name)
+						logger.Error(sensor.Name, err.Error())
 					}
 				}
 

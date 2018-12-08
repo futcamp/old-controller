@@ -73,21 +73,21 @@ func (m *MeteoDatabase) AddMeteoData(data *MeteoDBData) error {
 	hour := time.Now().Hour()
 
 	rows, err := m.Database.Query(
-		fmt.Sprintf("SELECT id FROM %s WHERE time=\"%s\" AND date=\"%s\"",
+		fmt.Sprintf("SELECT id FROM %s WHERE time = '%s' AND date = '%s'",
 			data.Sensor, fmt.Sprintf("%d:00", hour), date))
 	if err != nil {
 		return err
 	}
-	defer rows.Close()
 
 	if rows.Next() {
 		// Record in table already exists
 		rows.Close()
 		return nil
 	}
+	rows.Close()
 
-	_, err = m.Database.Exec(
-		fmt.Sprintf("INSERT INTO %s(temp,humidity,pressure,time,date) VALUES ($1,$2,$3,$4,$5)", data.Sensor),
+	_, err = m.Database.Exec(fmt.Sprintf(
+		"INSERT INTO %s(temp,humidity,pressure,time,date) VALUES ($1,$2,$3,$4,$5)", data.Sensor),
 		data.Temp, data.Humidity, data.Pressure, fmt.Sprintf("%d:00", hour), date)
 	if err != nil {
 		return err
@@ -101,7 +101,7 @@ func (m *MeteoDatabase) MeteoDataByDate(sensor string, date string) ([]MeteoDBDa
 	var data []MeteoDBData
 
 	rows, err := m.Database.Query(
-		fmt.Sprintf("SELECT temp,humidity,pressure,time,date FROM %s WHERE date=\"%s\"",
+		fmt.Sprintf("SELECT temp,humidity,pressure,time,date FROM %s WHERE date = '%s'",
 			sensor, date))
 	if err != nil {
 		return data, err

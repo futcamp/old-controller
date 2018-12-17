@@ -86,19 +86,18 @@ func (a *Application) Start() {
 
 		// Add meteo sensors
 		for _, sensor := range a.MeteoCfg.Settings().Sensors {
-			if !sensor.Enable {
-				continue
+			if sensor.Enable {
+				a.Meteo.AddSensor(sensor.Name, sensor.Type, sensor.IP, sensor.Channel)
+				a.Monitor.AddDevice(sensor.Name, "sensor", sensor.IP)
+				logger.Infof("New sensor %s type %s ip %s channel %d",
+					sensor.Name, sensor.Type, sensor.IP, sensor.Channel)
 			}
-			a.Meteo.AddSensor(sensor.Name, sensor.Type, sensor.IP, sensor.Channel)
-			a.Monitor.AddDevice(sensor.Name, "Sensor", sensor.IP)
-			logger.Infof("New sensor %s type %s ip %s channel %d",
-				sensor.Name, sensor.Type, sensor.IP, sensor.Channel)
 		}
 
 		// Add monitoring for displays
 		for _, display := range a.MeteoCfg.Settings().Displays {
 			if display.Enable {
-				a.Monitor.AddDevice(display.Name, "Display", display.IP)
+				a.Monitor.AddDevice(display.Name, "display", display.IP)
 			}
 		}
 

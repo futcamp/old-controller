@@ -152,12 +152,12 @@ func (w *WebServer) MeteoHandler(writer http.ResponseWriter, req *http.Request) 
 func (w *WebServer) MonitorHandler(writer http.ResponseWriter, req *http.Request) {
 	resp := NewResponse(&writer, configs.AppName)
 
-	logs, err := w.MonitorHdl.ProcessMonitoring(req)
+	devices, err := w.MonitorHdl.ProcessMonitoring(req)
 	if err != nil {
 		logger.Error(err.Error())
 		resp.SendFail(err.Error())
 		return
 	}
 
-	resp.Send(string(logs))
+	resp.Send(string(devices))
 }

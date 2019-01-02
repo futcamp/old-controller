@@ -24,7 +24,7 @@ import (
 	"net/http"
 )
 
-// CtrlMeteoData controlller meteo data
+// CtrlMeteoData controller meteo data
 type CtrlMeteoData struct {
 	Temp     int `json:"temp"`
 	Humidity int `json:"humidity"`

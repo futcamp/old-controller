@@ -18,6 +18,7 @@
 package main
 
 import (
+	"github.com/futcamp/controller/modules/airctrl"
 	"github.com/futcamp/controller/modules/meteo"
 	"github.com/futcamp/controller/monitoring"
 	"github.com/futcamp/controller/net"
@@ -39,13 +40,17 @@ type Application struct {
 	MeteoDB     *meteo.MeteoDatabase
 	Monitor     *monitoring.DeviceMonitor
 	MonitorTask *monitoring.MonitorTask
+	AirCtrl     *airctrl.AirControl
+	AirTask     *airctrl.AirCtrlTask
+	airCfg      *configs.AirCtrlConfigs
 }
 
 // NewApplication make new struct
 func NewApplication(log *utils.Logger, cfg *configs.Configs, mCfg *configs.MeteoConfigs,
 	meteo *meteo.MeteoStation, srv *net.WebServer, mTask *meteo.MeteoTask,
 	lTask *utils.LogTask, lck *utils.Locker, mdb *meteo.MeteoDatabase,
-	monitor *monitoring.DeviceMonitor, monitorTask *monitoring.MonitorTask) *Application {
+	monitor *monitoring.DeviceMonitor, monitorTask *monitoring.MonitorTask,
+	ac *airctrl.AirControl, acTask *airctrl.AirCtrlTask, airCfg *configs.AirCtrlConfigs) *Application {
 	return &Application{
 		Log:         log,
 		Cfg:         cfg,
@@ -58,6 +63,9 @@ func NewApplication(log *utils.Logger, cfg *configs.Configs, mCfg *configs.Meteo
 		MeteoDB:     mdb,
 		Monitor:     monitor,
 		MonitorTask: monitorTask,
+		AirCtrl:     ac,
+		AirTask:     acTask,
+		airCfg:      airCfg,
 	}
 }
 
@@ -74,8 +82,8 @@ func (a *Application) Start() {
 	}
 	logger.Infof("Configs %s was loaded", "main")
 
+	// Loading meteo configs
 	if a.Cfg.Settings().Modules.Meteo {
-		// Load meteo configs
 		err = a.MeteoCfg.LoadFromFile(utils.MeteoConfigsPath)
 		if err != nil {
 			logger.Errorf("Fail to load %s configs", "meteo")
@@ -89,7 +97,7 @@ func (a *Application) Start() {
 			if sensor.Enable {
 				a.Meteo.AddSensor(sensor.Name, sensor.Type, sensor.IP, sensor.Channel)
 				a.Monitor.AddDevice(sensor.Name, "sensor", sensor.IP)
-				logger.Infof("New sensor %s type %s ip %s channel %d",
+				logger.Infof("New meteo sensor %s type %s ip %s channel %d added.",
 					sensor.Name, sensor.Type, sensor.IP, sensor.Channel)
 			}
 		}
@@ -103,15 +111,24 @@ func (a *Application) Start() {
 
 		// Add db lock
 		a.Locker.AddLock(utils.MeteoDBName)
-
-		// Start task
-		go a.MeteoTask.Start()
 	}
 
-	// Start logger task
-	go a.LogTask.Start()
+	// Loading AirControl configs
+	if a.Cfg.Settings().Modules.AirCtrl {
+		a.airCfg.LoadFromFile(utils.AirCtrlConfigsPath)
 
-	// Start monitoring
+		for _, module := range a.airCfg.Settings().Modules {
+			mod := airctrl.NewAirCtrlModule(module.Name, module.IP, module.Sensor, module.Threshold)
+			a.AirCtrl.AddModule(module.Name, mod)
+			logger.Infof("New air control module %s ip %s added.", module.Name, module.IP)
+		}
+		logger.Infof("Configs %s was loaded", "airctrl")
+	}
+
+	// Start all application tasks
+	go a.LogTask.Start()
+	go a.MeteoTask.Start()
+	go a.AirTask.Start()
 	go a.MonitorTask.Start()
 
 	// Start web server

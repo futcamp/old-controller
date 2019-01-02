@@ -23,6 +23,7 @@ import (
 	"github.com/google/logger"
 )
 
+// Structure with device fields
 type Device struct {
 	Name string
 	Type string

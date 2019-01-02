@@ -24,10 +24,6 @@ import (
 	"go.uber.org/config"
 )
 
-const (
-	ModName = "meteo"
-)
-
 type MeteoDatabase struct {
 	IP       string
 	User     string
@@ -85,7 +81,7 @@ func (m *MeteoConfigs) LoadFromFile(fileName string) error {
 		return err
 	}
 
-	err = provider.Get(ModName).Populate(&m.settings)
+	err = provider.Get("meteo").Populate(&m.settings)
 	if err != nil {
 		return err
 	}

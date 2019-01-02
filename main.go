@@ -20,6 +20,7 @@ package main
 import (
 	"fmt"
 
+	"github.com/futcamp/controller/modules/airctrl"
 	"github.com/futcamp/controller/modules/meteo"
 	"github.com/futcamp/controller/monitoring"
 	"github.com/futcamp/controller/net"
@@ -39,6 +40,7 @@ func main() {
 	container.Provide(handlers.NewLogHandler)
 	container.Provide(configs.NewConfigs)
 	container.Provide(configs.NewMeteoConfigs)
+	container.Provide(configs.NewAirCtrlConfigs)
 	container.Provide(meteo.NewMeteoStation)
 	container.Provide(meteo.NewMeteoTask)
 	container.Provide(handlers.NewMeteoHandler)
@@ -46,6 +48,8 @@ func main() {
 	container.Provide(monitoring.NewMonitorTask)
 	container.Provide(handlers.NewMonitorHandler)
 	container.Provide(meteo.NewMeteoDatabase)
+	container.Provide(airctrl.NewAirControl)
+	container.Provide(airctrl.NewAirCtrlTask)
 	container.Provide(net.NewWebServer)
 	container.Provide(NewApplication)
 
@@ -53,7 +57,8 @@ func main() {
 		app.Start()
 		app.Free()
 	})
+
 	if err != nil {
-		fmt.Println(err.Error())
+		fmt.Printf("Fatal error: %s\n", err.Error())
 	}
 }

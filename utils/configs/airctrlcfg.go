@@ -24,37 +24,28 @@ import (
 	"go.uber.org/config"
 )
 
-const (
-	AppName    = "futcamp"
-	ApiVersion = "v2"
-)
-
-type ModCfg struct {
-	Meteo   bool
-	AirCtrl bool
+type AirCtrlModule struct {
+	Name      string
+	IP        string
+	Sensor    string
+	Threshold int
 }
 
-type ServerCfg struct {
-	IP   string
-	Port int
+type AirCtrlSettings struct {
+	Modules []AirCtrlModule
 }
 
-type AppSettings struct {
-	Server  ServerCfg
-	Modules ModCfg
+type AirCtrlConfigs struct {
+	settings AirCtrlSettings
 }
 
-type Configs struct {
-	settings AppSettings
-}
-
-// NewConfigs make new struct
-func NewConfigs() *Configs {
-	return &Configs{}
+// NewAirCtrlConfigs make new struct
+func NewAirCtrlConfigs() *AirCtrlConfigs {
+	return &AirCtrlConfigs{}
 }
 
 // LoadFromFile loading configs from cfg file
-func (c *Configs) LoadFromFile(fileName string) error {
+func (a *AirCtrlConfigs) LoadFromFile(fileName string) error {
 	file, err := os.Open(fileName)
 	if err != nil {
 		return err
@@ -66,7 +57,7 @@ func (c *Configs) LoadFromFile(fileName string) error {
 		return err
 	}
 
-	err = provider.Get(AppName).Populate(&c.settings)
+	err = provider.Get("airctrl").Populate(&a.settings)
 	if err != nil {
 		return err
 	}
@@ -75,6 +66,6 @@ func (c *Configs) LoadFromFile(fileName string) error {
 }
 
 // GetSettings get pointer of application settings
-func (c *Configs) Settings() *AppSettings {
-	return &c.settings
+func (a *AirCtrlConfigs) Settings() *AirCtrlSettings {
+	return &a.settings
 }

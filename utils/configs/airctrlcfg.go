@@ -29,6 +29,7 @@ type AirCtrlModule struct {
 	IP        string
 	Sensor    string
 	Threshold int
+	Status    bool
 }
 
 type AirCtrlSettings struct {

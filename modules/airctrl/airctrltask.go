@@ -39,7 +39,7 @@ type AirCtrlTask struct {
 func NewAirCtrlTask(ac *AirControl, meteo *meteo.MeteoStation) *AirCtrlTask {
 	return &AirCtrlTask{
 		airCtrl: ac,
-		meteo: meteo,
+		meteo:   meteo,
 	}
 }
 
@@ -48,7 +48,7 @@ func (a *AirCtrlTask) TaskHandler() {
 	for {
 		<-a.reqTimer.C
 
-		modules := a.airCtrl.GetModules()
+		modules := a.airCtrl.Modules()
 
 		// Syncing relay state
 		for _, module := range modules {
@@ -61,8 +61,8 @@ func (a *AirCtrlTask) TaskHandler() {
 		}
 
 		// If control is on - get data from humidity sensor and control air humidity
-		if a.airCtrl.GetHumidityControl() {
-			for _, module := range modules {
+		for _, module := range modules {
+			if module.HumidityControl() {
 				// Get humidity sensor pointer for humidity control
 				sensor, err := a.meteo.Sensor(module.Sensor)
 				if err != nil {
@@ -72,16 +72,16 @@ func (a *AirCtrlTask) TaskHandler() {
 
 				// Get current humidity from meteo sensor and current humidity module state
 				humidity := sensor.MeteoData().Humidity
-				state := module.GetRelayState()
+				state := module.RelayState()
 
-				if humidity < module.Threshold && !state {
+				if humidity < module.Threshold() && !state {
 					// If switched off send relay on command
 					err := module.SwitchRelay(true)
 					if err != nil {
 						logger.Error(err.Error())
 						module.SetError()
 					}
-				} else if humidity >= module.Threshold && state {
+				} else if humidity >= module.Threshold() && state {
 					// If switched on send relay off command
 					err := module.SwitchRelay(false)
 					if err != nil {
@@ -89,11 +89,9 @@ func (a *AirCtrlTask) TaskHandler() {
 						module.SetError()
 					}
 				}
-			}
-		} else {
-			for _, module := range modules {
-				if module.GetRelayState() {
-					// Switch off all air humidity control modules if control is off
+			} else {
+				if module.RelayState() {
+					// Switch off air humidity control module if control is off
 					err := module.SwitchRelay(false)
 					if err != nil {
 						logger.Error(err.Error())

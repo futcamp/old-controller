@@ -1,0 +1,4 @@
+airctrl threshold cab_529 int 22
+airctrl threshold cab_530 int 21
+airctrl status cab_529 bool true
+airctrl status cab_530 bool false

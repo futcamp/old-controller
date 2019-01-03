@@ -27,6 +27,7 @@ import (
 	"github.com/futcamp/controller/net/handlers"
 	"github.com/futcamp/controller/utils"
 	"github.com/futcamp/controller/utils/configs"
+	"github.com/futcamp/controller/utils/startup"
 
 	"go.uber.org/dig"
 )
@@ -50,6 +51,9 @@ func main() {
 	container.Provide(meteo.NewMeteoDatabase)
 	container.Provide(airctrl.NewAirControl)
 	container.Provide(airctrl.NewAirCtrlTask)
+	container.Provide(startup.NewStartupIO)
+	container.Provide(startup.NewStartupMods)
+	container.Provide(startup.NewStartupCfg)
 	container.Provide(net.NewWebServer)
 	container.Provide(NewApplication)
 

@@ -24,6 +24,7 @@ import (
 	"github.com/futcamp/controller/net"
 	"github.com/futcamp/controller/utils"
 	"github.com/futcamp/controller/utils/configs"
+	"github.com/futcamp/controller/utils/startup"
 
 	"github.com/google/logger"
 )
@@ -43,6 +44,7 @@ type Application struct {
 	AirCtrl     *airctrl.AirControl
 	AirTask     *airctrl.AirCtrlTask
 	airCfg      *configs.AirCtrlConfigs
+	startCfg    *startup.StartupCfg
 }
 
 // NewApplication make new struct
@@ -50,7 +52,8 @@ func NewApplication(log *utils.Logger, cfg *configs.Configs, mCfg *configs.Meteo
 	meteo *meteo.MeteoStation, srv *net.WebServer, mTask *meteo.MeteoTask,
 	lTask *utils.LogTask, lck *utils.Locker, mdb *meteo.MeteoDatabase,
 	monitor *monitoring.DeviceMonitor, monitorTask *monitoring.MonitorTask,
-	ac *airctrl.AirControl, acTask *airctrl.AirCtrlTask, airCfg *configs.AirCtrlConfigs) *Application {
+	ac *airctrl.AirControl, acTask *airctrl.AirCtrlTask, airCfg *configs.AirCtrlConfigs,
+	sc *startup.StartupCfg) *Application {
 	return &Application{
 		Log:         log,
 		Cfg:         cfg,
@@ -66,6 +69,7 @@ func NewApplication(log *utils.Logger, cfg *configs.Configs, mCfg *configs.Meteo
 		AirCtrl:     ac,
 		AirTask:     acTask,
 		airCfg:      airCfg,
+		startCfg:    sc,
 	}
 }
 
@@ -123,6 +127,13 @@ func (a *Application) Start() {
 			logger.Infof("New air control module %s ip %s added.", module.Name, module.IP)
 		}
 		logger.Infof("Configs %s was loaded", "airctrl")
+	}
+
+	// Loading startup-configs
+	err = a.startCfg.LoadFromFile(utils.StartupCfgPath)
+	if err != nil {
+		logger.Error("Fail to load startup-configs")
+		logger.Error(err.Error())
 	}
 
 	// Start all application tasks

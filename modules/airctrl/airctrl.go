@@ -23,16 +23,17 @@ type AirCtrlModule struct {
 	Name      string
 	IP        string
 	Sensor    string
-	Threshold int
+	threshold int
 	state     bool
 	exchError bool
+	status    bool
 	mtxState  sync.Mutex
 	mtxErr    sync.Mutex
+	mtxThr    sync.Mutex
+	mtxStat   sync.Mutex
 }
 
 type AirControl struct {
-	status  bool
-	mtxStat sync.Mutex
 	modules map[string]*AirCtrlModule
 }
 
@@ -42,7 +43,7 @@ func NewAirCtrlModule(name string, ip string, sensor string, thr int) *AirCtrlMo
 		Name:      name,
 		IP:        ip,
 		Sensor:    sensor,
-		Threshold: thr,
+		threshold: thr,
 		state:     false,
 		exchError: false,
 	}
@@ -63,8 +64,8 @@ func (m *AirCtrlModule) SwitchRelay(state bool) error {
 	return nil
 }
 
-// GetRelayState get current relay oper state
-func (m *AirCtrlModule) GetRelayState() bool {
+// RelayState get current relay oper state
+func (m *AirCtrlModule) RelayState() bool {
 	var state bool
 
 	m.mtxState.Lock()
@@ -81,8 +82,8 @@ func (m *AirCtrlModule) SetError() {
 	m.mtxState.Unlock()
 }
 
-// GetError get error flag state
-func (m *AirCtrlModule) GetError() bool {
+// Error get error flag state
+func (m *AirCtrlModule) Error() bool {
 	var err bool
 
 	m.mtxState.Lock()
@@ -90,6 +91,42 @@ func (m *AirCtrlModule) GetError() bool {
 	m.mtxState.Unlock()
 
 	return err
+}
+
+// SetThreshold set threshold value
+func (m *AirCtrlModule) SetThreshold(value int) {
+	m.mtxThr.Lock()
+	m.threshold = value
+	m.mtxThr.Unlock()
+}
+
+// Threshold get threshold value
+func (m *AirCtrlModule) Threshold() int {
+	var value int
+
+	m.mtxThr.Lock()
+	value = m.threshold
+	m.mtxThr.Unlock()
+
+	return value
+}
+
+// SwitchHumidityControl switch mode of humidity control for device
+func (m *AirCtrlModule) SwitchHumidityControl(state bool) {
+	m.mtxStat.Lock()
+	m.status = state
+	m.mtxStat.Unlock()
+}
+
+// HumidityControl get status of humidity control for device
+func (m *AirCtrlModule) HumidityControl() bool {
+	var status bool
+
+	m.mtxThr.Lock()
+	status = m.status
+	m.mtxThr.Unlock()
+
+	return status
 }
 
 // ClearError clear error flag
@@ -107,8 +144,8 @@ func (m *AirCtrlModule) SyncModule() error {
 		return err
 	}
 
-	if !data.Synced || m.GetError() {
-		curState := m.GetRelayState()
+	if !data.Synced || m.Error() {
+		curState := m.RelayState()
 
 		err = ctrl.SwitchRelay(curState)
 		if err != nil {
@@ -124,7 +161,6 @@ func NewAirControl() *AirControl {
 	modules := make(map[string]*AirCtrlModule)
 
 	return &AirControl{
-		status:  false,
 		modules: modules,
 	}
 }
@@ -134,40 +170,8 @@ func (a *AirControl) AddModule(name string, module *AirCtrlModule) {
 	a.modules[name] = module
 }
 
-// setHumidityControl set new state to humidity control
-func (a *AirControl) setHumidityControl(state bool) error {
-	a.mtxStat.Lock()
-	a.status = state
-	a.mtxStat.Unlock()
-
-	// TODO: add save state to database
-
-	return nil
-}
-
-// GetHumidityControl get current state of humidity control
-func (a *AirControl) GetHumidityControl() bool {
-	var state bool
-
-	a.mtxStat.Lock()
-	state = a.status
-	a.mtxStat.Unlock()
-
-	return state
-}
-
-// HumidityControlOn switch on control
-func (a *AirControl) HumidityControlOn() error {
-	return a.setHumidityControl(true)
-}
-
-// HumidityControlOff switch off control
-func (a *AirControl) HumidityControlOff() error {
-	return a.setHumidityControl(false)
-}
-
-// GetModules get all modules array
-func (a *AirControl) GetModules() []*AirCtrlModule {
+// Modules get all modules array
+func (a *AirControl) Modules() []*AirCtrlModule {
 	var modules []*AirCtrlModule
 
 	for _, mod := range a.modules {
@@ -175,4 +179,9 @@ func (a *AirControl) GetModules() []*AirCtrlModule {
 	}
 
 	return modules
+}
+
+// Module get single module pointer
+func (a *AirControl) Module(name string) *AirCtrlModule {
+	return a.modules[name]
 }

@@ -23,6 +23,7 @@ const (
 	MeteoConfigsPath   = "/etc/fc/meteo.conf"
 	AirCtrlConfigsPath = "/etc/fc/airctrl.conf"
 	LogPath            = "/var/log/fc/"
+	StartupCfgPath     = "/Users/sergey/startup-config"
 )
 
 // Database names

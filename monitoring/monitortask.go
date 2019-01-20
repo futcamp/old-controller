@@ -2,7 +2,7 @@
 /*
 /* Future Camp Project
 /*
-/* Copyright (C) 2018 Sergey Denisov.
+/* Copyright (C) 2018-2019 Sergey Denisov.
 /*
 /* Written by Sergey Denisov aka LittleBuster (DenisovS21@gmail.com)
 /* Github: https://github.com/LittleBuster
@@ -25,7 +25,7 @@ const (
 	taskDelay = 5
 )
 
-// MeteoTask meteo task struct
+// meteoTask meteo task struct
 type MonitorTask struct {
 	Monitor         *DeviceMonitor
 	ReqTimer        *time.Timer

@@ -2,7 +2,7 @@
 /*
 /* Future Camp Project
 /*
-/* Copyright (C) 2018 Sergey Denisov.
+/* Copyright (C) 2018-2019 Sergey Denisov.
 /*
 /* Written by Sergey Denisov aka LittleBuster (DenisovS21@gmail.com)
 /* Github: https://github.com/LittleBuster
@@ -34,25 +34,22 @@ const (
 )
 
 type WebServer struct {
-	Cfg      *configs.Configs
-	MeteoCfg *configs.MeteoConfigs
-	Meteo    *meteo.MeteoStation
-	MeteoHdl *handlers.MeteoHandler
-	LogHdl   *handlers.LogHandler
-	MonitorHdl *handlers.MonitorHandler
+	cfg        *configs.Configs
+	meteo      *meteo.MeteoStation
+	meteoHdl   *handlers.MeteoHandler
+	logHdl     *handlers.LogHandler
+	monitorHdl *handlers.MonitorHandler
 }
 
 // NewWebServer make new struct
-func NewWebServer(cfg *configs.Configs, meteo *meteo.MeteoStation,
-	mCfg *configs.MeteoConfigs, mh *handlers.MeteoHandler,
+func NewWebServer(cfg *configs.Configs, meteo *meteo.MeteoStation, mh *handlers.MeteoHandler,
 	lh *handlers.LogHandler, mnh *handlers.MonitorHandler) *WebServer {
 	return &WebServer{
-		Cfg:      cfg,
-		MeteoCfg: mCfg,
-		Meteo:    meteo,
-		MeteoHdl: mh,
-		LogHdl:   lh,
-		MonitorHdl:mnh,
+		cfg:        cfg,
+		meteo:      meteo,
+		meteoHdl:   mh,
+		logHdl:     lh,
+		monitorHdl: mnh,
 	}
 }
 
@@ -63,7 +60,7 @@ func (w *WebServer) Start(ip string, port int) error {
 	mux.HandleFunc("/", w.IndexHandler)
 	mux.HandleFunc(fmt.Sprintf("/api/%s/log/", configs.ApiVersion), w.LogHandler)
 	mux.HandleFunc(fmt.Sprintf("/api/%s/monitoring/", configs.ApiVersion), w.MonitorHandler)
-	if w.Cfg.Settings().Modules.Meteo {
+	if w.cfg.Settings().Modules.Meteo {
 		mux.HandleFunc(fmt.Sprintf("/api/%s/meteo/", configs.ApiVersion), w.MeteoHandler)
 	}
 
@@ -90,7 +87,7 @@ func (w *WebServer) LogHandler(writer http.ResponseWriter, req *http.Request) {
 	args := strings.Split(req.RequestURI, "/")
 
 	if len(args) == 5 && args[4] != "" {
-		logs, err := w.LogHdl.ProcessLogsByDate(args[4], req)
+		logs, err := w.logHdl.ProcessLogsByDate(args[4], req)
 		if err != nil {
 			resp.SendFail(err.Error())
 			return
@@ -99,7 +96,7 @@ func (w *WebServer) LogHandler(writer http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	logs, err := w.LogHdl.ProcessExistingLogsList(req)
+	logs, err := w.logHdl.ProcessExistingLogsList(req)
 	if err != nil {
 		logger.Error(err.Error())
 		resp.SendFail(err.Error())
@@ -116,7 +113,7 @@ func (w *WebServer) MeteoHandler(writer http.ResponseWriter, req *http.Request) 
 	if len(args) == 6 && args[5] != "" {
 		// Clear all sensor meteo data
 		if args[5] == "clear" {
-			err := w.MeteoHdl.ProcessMeteoDBClearHandler(args[4], req)
+			err := w.meteoHdl.ProcessMeteoDBClearHandler(args[4], req)
 			if err != nil {
 				logger.Error(err.Error())
 				resp.SendFail(err.Error())
@@ -127,7 +124,7 @@ func (w *WebServer) MeteoHandler(writer http.ResponseWriter, req *http.Request) 
 		}
 
 		// Get sensor's meteo data by date
-		data, err := w.MeteoHdl.ProcessMeteoDBHandler(args[4], args[5], req)
+		data, err := w.meteoHdl.ProcessMeteoDBHandler(args[4], args[5], req)
 		if err != nil {
 			logger.Error(err.Error())
 			resp.SendFail(err.Error())
@@ -138,7 +135,7 @@ func (w *WebServer) MeteoHandler(writer http.ResponseWriter, req *http.Request) 
 	}
 
 	// Get all meteo sensors data
-	data, err := w.MeteoHdl.ProcessMeteoAllHandler(req)
+	data, err := w.meteoHdl.ProcessMeteoAllHandler(req)
 	if err != nil {
 		logger.Error(err.Error())
 		resp.SendFail(err.Error())
@@ -152,7 +149,7 @@ func (w *WebServer) MeteoHandler(writer http.ResponseWriter, req *http.Request) 
 func (w *WebServer) MonitorHandler(writer http.ResponseWriter, req *http.Request) {
 	resp := NewResponse(&writer, configs.AppName)
 
-	devices, err := w.MonitorHdl.ProcessMonitoring(req)
+	devices, err := w.monitorHdl.ProcessMonitoring(req)
 	if err != nil {
 		logger.Error(err.Error())
 		resp.SendFail(err.Error())

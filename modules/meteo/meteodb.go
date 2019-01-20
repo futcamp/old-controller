@@ -2,7 +2,7 @@
 /*
 /* Future Camp Project
 /*
-/* Copyright (C) 2018 Sergey Denisov.
+/* Copyright (C) 2018-2019 Sergey Denisov.
 /*
 /* Written by Sergey Denisov aka LittleBuster (DenisovS21@gmail.com)
 /* Github: https://github.com/LittleBuster
@@ -22,7 +22,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/futcamp/controller/utils"
 	_ "github.com/lib/pq"
 )
 
@@ -38,25 +37,18 @@ type MeteoDBData struct {
 
 type MeteoDatabase struct {
 	Database *sql.DB
-	Locker   *utils.Locker
 	FileName string
 }
 
 // NewMeteoDatabase make new struct
-func NewMeteoDatabase(lck *utils.Locker) *MeteoDatabase {
+func NewMeteoDatabase() *MeteoDatabase {
 	return &MeteoDatabase{
-		Locker: lck,
 	}
 }
 
 // Load open database
 func (m *MeteoDatabase) Connect(ip string, user string, passwd string, db string) error {
 	var err error
-
-	err = m.Locker.Lock(utils.MeteoDBName)
-	if err != nil {
-		return err
-	}
 
 	m.Database, err = sql.Open("postgres", fmt.Sprintf("postgres://%s:%s@%s/%s",
 		user, passwd, ip, db))
@@ -138,5 +130,4 @@ func (m *MeteoDatabase) MeteoDataClear(sensor string) error {
 // Unload close database
 func (m *MeteoDatabase) Close() {
 	m.Database.Close()
-	m.Locker.Unlock(utils.MeteoDBName)
 }

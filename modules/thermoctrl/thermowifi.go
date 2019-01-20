@@ -2,7 +2,7 @@
 /*
 /* Future Camp Project
 /*
-/* Copyright (C) 2018-2019 Sergey Denisov.
+/* Copyright (C) 2018 Sergey Denisov.
 /*
 /* Written by Sergey Denisov aka LittleBuster (DenisovS21@gmail.com)
 /* Github: https://github.com/LittleBuster
@@ -15,7 +15,7 @@
 /*
 /*******************************************************************/
 
-package airctrl
+package thermoctrl
 
 import (
 	"encoding/json"
@@ -24,8 +24,8 @@ import (
 	"net/http"
 )
 
-// CtrlAirData controller air sync data
-type CtrlAirData struct {
+// CtrlThermoData controller thermo sync data
+type CtrlThermoData struct {
 	Name   string `json:"name"`
 	Synced bool   `json:"synced"`
 }
@@ -41,9 +41,9 @@ func NewWiFiController(ip string) *WiFiController {
 	}
 }
 
-// SyncThermoData get actual air data from controller
-func (w *WiFiController) SyncAirData() (CtrlAirData, error) {
-	var data CtrlAirData
+// SyncThermoData get actual thermo data from controller
+func (w *WiFiController) SyncThermoData() (CtrlThermoData, error) {
+	var data CtrlThermoData
 
 	res, err := http.Get(fmt.Sprintf("http://%s/sync", w.ip))
 	if err != nil {
@@ -64,7 +64,7 @@ func (w *WiFiController) SyncAirData() (CtrlAirData, error) {
 	return data, nil
 }
 
-// SwitchRelay switch humidity control device relay
+// SwitchRelay switch thermo control device relay
 func (w *WiFiController) SwitchRelay(state bool) error {
 	res, err := http.Get(fmt.Sprintf("http://%s/relay?state=%t", w.ip, state))
 	if err != nil {

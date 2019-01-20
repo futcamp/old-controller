@@ -2,7 +2,7 @@
 /*
 /* Future Camp Project
 /*
-/* Copyright (C) 2018 Sergey Denisov.
+/* Copyright (C) 2018-2019 Sergey Denisov.
 /*
 /* Written by Sergey Denisov aka LittleBuster (DenisovS21@gmail.com)
 /* Github: https://github.com/LittleBuster
@@ -37,18 +37,16 @@ type DisplayedSensor struct {
 }
 
 type MeteoHandler struct {
-	MeteoCfg *configs.MeteoConfigs
-	Meteo    *meteo.MeteoStation
-	MeteoDB  *meteo.MeteoDatabase
+	meteo   *meteo.MeteoStation
+	meteoDB *meteo.MeteoDatabase
+	dynCfg  *configs.DynamicConfigs
 }
 
 // NewMeteoHandler make new struct
-func NewMeteoHandler(mCfg *configs.MeteoConfigs, meteo *meteo.MeteoStation,
-	mdb *meteo.MeteoDatabase) *MeteoHandler {
+func NewMeteoHandler(meteo *meteo.MeteoStation, mdb *meteo.MeteoDatabase) *MeteoHandler {
 	return &MeteoHandler{
-		MeteoCfg: mCfg,
-		Meteo:    meteo,
-		MeteoDB:  mdb,
+		meteo:   meteo,
+		meteoDB: mdb,
 	}
 }
 
@@ -61,7 +59,7 @@ func (m *MeteoHandler) ProcessMeteoAllHandler(req *http.Request) ([]byte, error)
 		return nil, errors.New("Bad request method")
 	}
 
-	for _, sensor := range m.Meteo.AllSensors() {
+	for _, sensor := range m.meteo.AllSensors() {
 		mdata := sensor.MeteoData()
 
 		s := DisplayedSensor{
@@ -75,7 +73,7 @@ func (m *MeteoHandler) ProcessMeteoAllHandler(req *http.Request) ([]byte, error)
 		sensors = append(sensors, s)
 	}
 
-	netdata.SetRestResponse(data, "meteo", "Meteo Station", sensors, req)
+	netdata.SetRestResponse(data, "meteo", "meteo Station", sensors, req)
 
 	jData, _ := json.Marshal(data)
 	return jData, nil
@@ -89,18 +87,18 @@ func (m *MeteoHandler) ProcessMeteoDBHandler(sensor string, date string, req *ht
 		return nil, errors.New("Bad request method")
 	}
 
-	dbCfg := m.MeteoCfg.Settings().Database
-	err := m.MeteoDB.Connect(dbCfg.IP, dbCfg.User, dbCfg.Password, dbCfg.Base)
+	dbCfg := m.dynCfg.MeteoDB
+	err := m.meteoDB.Connect(dbCfg.IP, dbCfg.User, dbCfg.Passwd, dbCfg.Base)
 	if err != nil {
 		return nil, err
 	}
-	defer m.MeteoDB.Close()
+	defer m.meteoDB.Close()
 
-	sensors, err := m.MeteoDB.MeteoDataByDate(sensor, date)
+	sensors, err := m.meteoDB.MeteoDataByDate(sensor, date)
 	if err != nil {
 		return nil, err
 	}
-	netdata.SetRestResponse(data, "meteo", "Meteo Station", sensors, req)
+	netdata.SetRestResponse(data, "meteo", "meteo Station", sensors, req)
 
 	jData, _ := json.Marshal(data)
 	return jData, nil
@@ -112,14 +110,14 @@ func (m *MeteoHandler) ProcessMeteoDBClearHandler(sensor string, req *http.Reque
 		return errors.New("Bad request method")
 	}
 
-	dbCfg := m.MeteoCfg.Settings().Database
-	err := m.MeteoDB.Connect(dbCfg.IP, dbCfg.User, dbCfg.Password, dbCfg.Base)
+	dbCfg := m.dynCfg.MeteoDB
+	err := m.meteoDB.Connect(dbCfg.IP, dbCfg.User, dbCfg.Passwd, dbCfg.Base)
 	if err != nil {
 		return err
 	}
-	defer m.MeteoDB.Close()
+	defer m.meteoDB.Close()
 
-	err = m.MeteoDB.MeteoDataClear(sensor)
+	err = m.meteoDB.MeteoDataClear(sensor)
 	if err != nil {
 		return err
 	}

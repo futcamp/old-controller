@@ -2,7 +2,7 @@
 /*
 /* Future Camp Project
 /*
-/* Copyright (C) 2018 Sergey Denisov.
+/* Copyright (C) 2018-2019 Sergey Denisov.
 /*
 /* Written by Sergey Denisov aka LittleBuster (DenisovS21@gmail.com)
 /* Github: https://github.com/LittleBuster
@@ -22,12 +22,14 @@ import (
 
 	"github.com/futcamp/controller/modules/airctrl"
 	"github.com/futcamp/controller/modules/meteo"
+	"github.com/futcamp/controller/modules/thermoctrl"
 	"github.com/futcamp/controller/monitoring"
 	"github.com/futcamp/controller/net"
 	"github.com/futcamp/controller/net/handlers"
 	"github.com/futcamp/controller/utils"
 	"github.com/futcamp/controller/utils/configs"
 	"github.com/futcamp/controller/utils/startup"
+	"github.com/futcamp/controller/utils/startup/io"
 
 	"go.uber.org/dig"
 )
@@ -39,21 +41,31 @@ func main() {
 	container.Provide(utils.NewLogTask)
 	container.Provide(utils.NewLocker)
 	container.Provide(handlers.NewLogHandler)
-	container.Provide(configs.NewConfigs)
-	container.Provide(configs.NewMeteoConfigs)
-	container.Provide(configs.NewAirCtrlConfigs)
+
 	container.Provide(meteo.NewMeteoStation)
 	container.Provide(meteo.NewMeteoTask)
+	container.Provide(startup.NewMeteoStartupCfg)
+	container.Provide(meteo.NewMeteoDatabase)
+	container.Provide(meteo.NewMeteoDisplays)
+	container.Provide(startup.NewDisplayStartupCfg)
+
 	container.Provide(handlers.NewMeteoHandler)
 	container.Provide(monitoring.NewDeviceMonitor)
 	container.Provide(monitoring.NewMonitorTask)
 	container.Provide(handlers.NewMonitorHandler)
-	container.Provide(meteo.NewMeteoDatabase)
+
 	container.Provide(airctrl.NewAirControl)
 	container.Provide(airctrl.NewAirCtrlTask)
-	container.Provide(startup.NewStartupIO)
-	container.Provide(startup.NewStartupMods)
-	container.Provide(startup.NewStartupCfg)
+	container.Provide(startup.NewAirctrlStartupCfg)
+
+	container.Provide(thermoctrl.NewThermoControl)
+	container.Provide(thermoctrl.NewThermoCtrlTask)
+
+	container.Provide(configs.NewConfigs)
+	container.Provide(configs.NewDynamicConfigs)
+	container.Provide(io.NewStartupIO)
+	container.Provide(io.NewStartupMods)
+
 	container.Provide(net.NewWebServer)
 	container.Provide(NewApplication)
 

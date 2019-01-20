@@ -2,7 +2,7 @@
 /*
 /* Future Camp Project
 /*
-/* Copyright (C) 2018 Sergey Denisov.
+/* Copyright (C) 2018-2019 Sergey Denisov.
 /*
 /* Written by Sergey Denisov aka LittleBuster (DenisovS21@gmail.com)
 /* Github: https://github.com/LittleBuster
@@ -28,6 +28,7 @@ const (
 	AppName    = "futcamp"
 	ApiVersion = "v2"
 )
+
 
 type ModCfg struct {
 	Meteo   bool

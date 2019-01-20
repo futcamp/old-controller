@@ -2,7 +2,7 @@
 /*
 /* Future Camp Project
 /*
-/* Copyright (C) 2018 Sergey Denisov.
+/* Copyright (C) 2018-2019 Sergey Denisov.
 /*
 /* Written by Sergey Denisov aka LittleBuster (DenisovS21@gmail.com)
 /* Github: https://github.com/LittleBuster
@@ -24,61 +24,56 @@ import (
 	"github.com/futcamp/controller/net"
 	"github.com/futcamp/controller/utils"
 	"github.com/futcamp/controller/utils/configs"
-	"github.com/futcamp/controller/utils/startup"
+	"github.com/futcamp/controller/utils/startup/io"
 
 	"github.com/google/logger"
 )
 
 type Application struct {
-	Log         *utils.Logger
-	LogTask     *utils.LogTask
-	Cfg         *configs.Configs
-	MeteoCfg    *configs.MeteoConfigs
-	Meteo       *meteo.MeteoStation
-	Server      *net.WebServer
-	MeteoTask   *meteo.MeteoTask
-	Locker      *utils.Locker
-	MeteoDB     *meteo.MeteoDatabase
-	Monitor     *monitoring.DeviceMonitor
-	MonitorTask *monitoring.MonitorTask
-	AirCtrl     *airctrl.AirControl
-	AirTask     *airctrl.AirCtrlTask
-	airCfg      *configs.AirCtrlConfigs
-	startCfg    *startup.StartupCfg
+	log         *utils.Logger
+	logTask     *utils.LogTask
+	cfg         *configs.Configs
+	meteo       *meteo.MeteoStation
+	server      *net.WebServer
+	meteoTask   *meteo.MeteoTask
+	locker      *utils.Locker
+	meteoDB     *meteo.MeteoDatabase
+	monitor     *monitoring.DeviceMonitor
+	monitorTask *monitoring.MonitorTask
+	airCtrl     *airctrl.AirControl
+	airTask     *airctrl.AirCtrlTask
+	startupMods *io.StartupMods
 }
 
 // NewApplication make new struct
-func NewApplication(log *utils.Logger, cfg *configs.Configs, mCfg *configs.MeteoConfigs,
+func NewApplication(log *utils.Logger, cfg *configs.Configs,
 	meteo *meteo.MeteoStation, srv *net.WebServer, mTask *meteo.MeteoTask,
 	lTask *utils.LogTask, lck *utils.Locker, mdb *meteo.MeteoDatabase,
 	monitor *monitoring.DeviceMonitor, monitorTask *monitoring.MonitorTask,
-	ac *airctrl.AirControl, acTask *airctrl.AirCtrlTask, airCfg *configs.AirCtrlConfigs,
-	sc *startup.StartupCfg) *Application {
+	ac *airctrl.AirControl, acTask *airctrl.AirCtrlTask, sm *io.StartupMods) *Application {
 	return &Application{
-		Log:         log,
-		Cfg:         cfg,
-		MeteoCfg:    mCfg,
-		Meteo:       meteo,
-		Server:      srv,
-		MeteoTask:   mTask,
-		LogTask:     lTask,
-		Locker:      lck,
-		MeteoDB:     mdb,
-		Monitor:     monitor,
-		MonitorTask: monitorTask,
-		AirCtrl:     ac,
-		AirTask:     acTask,
-		airCfg:      airCfg,
-		startCfg:    sc,
+		log:         log,
+		cfg:         cfg,
+		meteo:       meteo,
+		server:      srv,
+		meteoTask:   mTask,
+		logTask:     lTask,
+		locker:      lck,
+		meteoDB:     mdb,
+		monitor:     monitor,
+		monitorTask: monitorTask,
+		airCtrl:     ac,
+		airTask:     acTask,
+		startupMods: sm,
 	}
 }
 
 // Start run init functions of all modules
 func (a *Application) Start() {
-	a.Log.Init(utils.LogPath)
+	a.log.Init(utils.LogPath)
 
 	// Load app configs
-	err := a.Cfg.LoadFromFile(utils.ConfigsPath)
+	err := a.cfg.LoadFromFile(utils.ConfigsPath)
 	if err != nil {
 		logger.Errorf("Fail to load %s configs", "main")
 		logger.Error(err.Error())
@@ -86,66 +81,24 @@ func (a *Application) Start() {
 	}
 	logger.Infof("Configs %s was loaded", "main")
 
-	// Loading meteo configs
-	if a.Cfg.Settings().Modules.Meteo {
-		err = a.MeteoCfg.LoadFromFile(utils.MeteoConfigsPath)
-		if err != nil {
-			logger.Errorf("Fail to load %s configs", "meteo")
-			logger.Error(err.Error())
-			return
-		}
-		logger.Infof("Configs %s was loaded", "meteo")
-
-		// Add meteo sensors
-		for _, sensor := range a.MeteoCfg.Settings().Sensors {
-			if sensor.Enable {
-				a.Meteo.AddSensor(sensor.Name, sensor.Type, sensor.IP, sensor.Channel)
-				a.Monitor.AddDevice(sensor.Name, "sensor", sensor.IP)
-				logger.Infof("New meteo sensor %s type %s ip %s channel %d added.",
-					sensor.Name, sensor.Type, sensor.IP, sensor.Channel)
-			}
-		}
-
-		// Add monitoring for displays
-		for _, display := range a.MeteoCfg.Settings().Displays {
-			if display.Enable {
-				a.Monitor.AddDevice(display.Name, "display", display.IP)
-			}
-		}
-
-		// Add db lock
-		a.Locker.AddLock(utils.MeteoDBName)
-	}
-
-	// Loading AirControl configs
-	if a.Cfg.Settings().Modules.AirCtrl {
-		a.airCfg.LoadFromFile(utils.AirCtrlConfigsPath)
-
-		for _, module := range a.airCfg.Settings().Modules {
-			mod := airctrl.NewAirCtrlModule(module.Name, module.IP, module.Sensor, module.Threshold)
-			a.AirCtrl.AddModule(module.Name, mod)
-			logger.Infof("New air control module %s ip %s added.", module.Name, module.IP)
-		}
-		logger.Infof("Configs %s was loaded", "airctrl")
-	}
-
-	// Loading startup-configs
-	err = a.startCfg.LoadFromFile(utils.StartupCfgPath)
+	err = a.startupMods.LoadFromFile(utils.StartupCfgPath)
 	if err != nil {
-		logger.Error("Fail to load startup-configs")
+		logger.Error("Fail to read startup configs")
 		logger.Error(err.Error())
 	}
+	logger.Info("Startup configs was loaded")
 
 	// Start all application tasks
-	go a.LogTask.Start()
-	go a.MeteoTask.Start()
-	go a.AirTask.Start()
-	go a.MonitorTask.Start()
+	go a.logTask.Start()
+	go a.meteoTask.Start()
+	go a.airTask.Start()
+	go a.monitorTask.Start()
 
 	// Start web server
-	logger.Infof("Starting Web server at %s:%d...", a.Cfg.Settings().Server.IP,
-		a.Cfg.Settings().Server.Port)
-	err = a.Server.Start(a.Cfg.Settings().Server.IP, a.Cfg.Settings().Server.Port)
+	logger.Infof("Starting Web server at %s:%d...", a.cfg.Settings().Server.IP,
+		a.cfg.Settings().Server.Port)
+
+	err = a.server.Start(a.cfg.Settings().Server.IP, a.cfg.Settings().Server.Port)
 	if err != nil {
 		logger.Error("Fail to start WebServer")
 		logger.Error(err.Error())
@@ -156,5 +109,5 @@ func (a *Application) Start() {
 
 // Free unload all modules from memory
 func (a *Application) Free() {
-	a.Log.Free()
+	a.log.Free()
 }

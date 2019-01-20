@@ -2,7 +2,7 @@
 /*
 /* Future Camp Project
 /*
-/* Copyright (C) 2018-2019 Sergey Denisov.
+/* Copyright (C) 2018 Sergey Denisov.
 /*
 /* Written by Sergey Denisov aka LittleBuster (DenisovS21@gmail.com)
 /* Github: https://github.com/LittleBuster
@@ -15,7 +15,7 @@
 /*
 /*******************************************************************/
 
-package airctrl
+package thermoctrl
 
 import (
 	"time"
@@ -28,27 +28,27 @@ const (
 	taskDelay = 1
 )
 
-// AirCtrlTask air control task struct
-type AirCtrlTask struct {
-	reqTimer *time.Timer
-	airCtrl  *AirControl
-	meteo    *meteo.MeteoStation
+// ThermoCtrlTask air control task struct
+type ThermoCtrlTask struct {
+	reqTimer   *time.Timer
+	thermoCtrl *ThermoControl
+	meteo      *meteo.MeteoStation
 }
 
-// NewAirCtrlTask make new struct
-func NewAirCtrlTask(ac *AirControl, meteo *meteo.MeteoStation) *AirCtrlTask {
-	return &AirCtrlTask{
-		airCtrl: ac,
-		meteo:   meteo,
+// NewThermoCtrlTask make new struct
+func NewThermoCtrlTask(tc *ThermoControl, meteo *meteo.MeteoStation) *ThermoCtrlTask {
+	return &ThermoCtrlTask{
+		thermoCtrl: tc,
+		meteo:      meteo,
 	}
 }
 
 // TaskHandler process timer loop
-func (a *AirCtrlTask) TaskHandler() {
+func (a *ThermoCtrlTask) TaskHandler() {
 	for {
 		<-a.reqTimer.C
 
-		modules := a.airCtrl.Modules()
+		modules := a.thermoCtrl.Modules()
 
 		// Syncing relay state
 		for _, module := range modules {
@@ -60,24 +60,24 @@ func (a *AirCtrlTask) TaskHandler() {
 			}
 		}
 
-		// If control is on - get data from humidity sensor and control air humidity
+		// If control is on - get data from meteo sensor and control temperature
 		for _, module := range modules {
-			if module.HumidityControl() {
+			if module.ThermoControl() {
 				// Get humidity sensor pointer for humidity control
 				sensor := a.meteo.Sensor(module.Sensor)
 
 				// Get current humidity from meteo sensor and current humidity module state
-				humidity := sensor.MeteoData().Humidity
+				temp := sensor.MeteoData().Temp
 				state := module.RelayState()
 
-				if humidity < module.Threshold() && !state {
+				if temp < module.Threshold() && !state {
 					// If switched off send relay on command
 					err := module.SwitchRelay(true)
 					if err != nil {
 						logger.Error(err.Error())
 						module.SetError()
 					}
-				} else if humidity >= module.Threshold() && state {
+				} else if temp >= module.Threshold() && state {
 					// If switched on send relay off command
 					err := module.SwitchRelay(false)
 					if err != nil {
@@ -101,7 +101,7 @@ func (a *AirCtrlTask) TaskHandler() {
 }
 
 // Start start new timer
-func (a *AirCtrlTask) Start() {
+func (a *ThermoCtrlTask) Start() {
 	a.reqTimer = time.NewTimer(taskDelay * time.Second)
 	a.TaskHandler()
 }

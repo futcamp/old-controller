@@ -2,7 +2,7 @@
 /*
 /* Future Camp Project
 /*
-/* Copyright (C) 2018-2019 Sergey Denisov.
+/* Copyright (C) 2018 Sergey Denisov.
 /*
 /* Written by Sergey Denisov aka LittleBuster (DenisovS21@gmail.com)
 /* Github: https://github.com/LittleBuster
@@ -15,11 +15,11 @@
 /*
 /*******************************************************************/
 
-package airctrl
+package thermoctrl
 
 import "sync"
 
-type AirCtrlModule struct {
+type ThermoCtrlModule struct {
 	Name      string
 	IP        string
 	Sensor    string
@@ -33,13 +33,13 @@ type AirCtrlModule struct {
 	mtxStat   sync.Mutex
 }
 
-type AirControl struct {
-	modules map[string]*AirCtrlModule
+type ThermoControl struct {
+	modules map[string]*ThermoCtrlModule
 }
 
-// NewAirCtrlModule make new AirCtrlModule struct
-func NewAirCtrlModule(name string, ip string, sensor string, thr int) *AirCtrlModule {
-	return &AirCtrlModule{
+// NewThermoCtrlModule make new ThermoCtrlModule struct
+func NewThermoCtrlModule(name string, ip string, sensor string, thr int) *ThermoCtrlModule {
+	return &ThermoCtrlModule{
 		Name:      name,
 		IP:        ip,
 		Sensor:    sensor,
@@ -50,7 +50,7 @@ func NewAirCtrlModule(name string, ip string, sensor string, thr int) *AirCtrlMo
 }
 
 // SwitchRelay send switch relay command to controller and switch oper state
-func (m *AirCtrlModule) SwitchRelay(state bool) error {
+func (m *ThermoCtrlModule) SwitchRelay(state bool) error {
 	ctrl := NewWiFiController(m.IP)
 	err := ctrl.SwitchRelay(state)
 	if err != nil {
@@ -65,7 +65,7 @@ func (m *AirCtrlModule) SwitchRelay(state bool) error {
 }
 
 // RelayState get current relay oper state
-func (m *AirCtrlModule) RelayState() bool {
+func (m *ThermoCtrlModule) RelayState() bool {
 	var state bool
 
 	m.mtxState.Lock()
@@ -76,14 +76,14 @@ func (m *AirCtrlModule) RelayState() bool {
 }
 
 // SetError set error flag
-func (m *AirCtrlModule) SetError() {
+func (m *ThermoCtrlModule) SetError() {
 	m.mtxState.Lock()
 	m.exchError = true
 	m.mtxState.Unlock()
 }
 
 // Error get error flag state
-func (m *AirCtrlModule) Error() bool {
+func (m *ThermoCtrlModule) Error() bool {
 	var err bool
 
 	m.mtxState.Lock()
@@ -94,14 +94,14 @@ func (m *AirCtrlModule) Error() bool {
 }
 
 // SetThreshold set threshold value
-func (m *AirCtrlModule) SetThreshold(value int) {
+func (m *ThermoCtrlModule) SetThreshold(value int) {
 	m.mtxThr.Lock()
 	m.threshold = value
 	m.mtxThr.Unlock()
 }
 
 // Threshold get threshold value
-func (m *AirCtrlModule) Threshold() int {
+func (m *ThermoCtrlModule) Threshold() int {
 	var value int
 
 	m.mtxThr.Lock()
@@ -111,15 +111,15 @@ func (m *AirCtrlModule) Threshold() int {
 	return value
 }
 
-// SwitchThermoControl switch mode of humidity control for device
-func (m *AirCtrlModule) SwitchHumidityControl(state bool) {
+// SwitchThermoControl switch mode of thermo control for device
+func (m *ThermoCtrlModule) SwitchThermoControl(state bool) {
 	m.mtxStat.Lock()
 	m.status = state
 	m.mtxStat.Unlock()
 }
 
 // ThermoControl get status of humidity control for device
-func (m *AirCtrlModule) HumidityControl() bool {
+func (m *ThermoCtrlModule) ThermoControl() bool {
 	var status bool
 
 	m.mtxThr.Lock()
@@ -130,16 +130,16 @@ func (m *AirCtrlModule) HumidityControl() bool {
 }
 
 // ClearError clear error flag
-func (m *AirCtrlModule) ClearError() {
+func (m *ThermoCtrlModule) ClearError() {
 	m.mtxState.Lock()
 	m.exchError = false
 	m.mtxState.Unlock()
 }
 
 // SyncModule relay sync state with controller
-func (m *AirCtrlModule) SyncModule() error {
+func (m *ThermoCtrlModule) SyncModule() error {
 	ctrl := NewWiFiController(m.IP)
-	data, err := ctrl.SyncAirData()
+	data, err := ctrl.SyncThermoData()
 	if err != nil {
 		return err
 	}
@@ -156,23 +156,23 @@ func (m *AirCtrlModule) SyncModule() error {
 	return nil
 }
 
-// NewAirControl make new AirControl struct
-func NewAirControl() *AirControl {
-	modules := make(map[string]*AirCtrlModule)
+// NewThermoControl make new ThermoControl struct
+func NewThermoControl() *ThermoControl {
+	modules := make(map[string]*ThermoCtrlModule)
 
-	return &AirControl{
+	return &ThermoControl{
 		modules: modules,
 	}
 }
 
-// AddModule add new air control module
-func (a *AirControl) AddModule(name string, module *AirCtrlModule) {
+// AddModule add new thermo control module
+func (a *ThermoControl) AddModule(name string, module *ThermoCtrlModule) {
 	a.modules[name] = module
 }
 
 // Modules get all modules array
-func (a *AirControl) Modules() []*AirCtrlModule {
-	var modules []*AirCtrlModule
+func (a *ThermoControl) Modules() []*ThermoCtrlModule {
+	var modules []*ThermoCtrlModule
 
 	for _, mod := range a.modules {
 		modules = append(modules, mod)
@@ -182,6 +182,6 @@ func (a *AirControl) Modules() []*AirCtrlModule {
 }
 
 // Module get single module pointer
-func (a *AirControl) Module(name string) *AirCtrlModule {
+func (a *ThermoControl) Module(name string) *ThermoCtrlModule {
 	return a.modules[name]
 }

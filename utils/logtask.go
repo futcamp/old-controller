@@ -2,7 +2,7 @@
 /*
 /* Future Camp Project
 /*
-/* Copyright (C) 2018 Sergey Denisov.
+/* Copyright (C) 2018-2019 Sergey Denisov.
 /*
 /* Written by Sergey Denisov aka LittleBuster (DenisovS21@gmail.com)
 /* Github: https://github.com/LittleBuster
@@ -25,7 +25,7 @@ const (
 	taskDelay = 1
 )
 
-// LogTask logger task struct
+// logTask logger task struct
 type LogTask struct {
 	Log             *Logger
 	ReqTimer        *time.Timer

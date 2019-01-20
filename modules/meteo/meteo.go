@@ -2,7 +2,7 @@
 /*
 /* Future Camp Project
 /*
-/* Copyright (C) 2018 Sergey Denisov.
+/* Copyright (C) 2018-2019 Sergey Denisov.
 /*
 /* Written by Sergey Denisov aka LittleBuster (DenisovS21@gmail.com)
 /* Github: https://github.com/LittleBuster
@@ -18,7 +18,6 @@
 package meteo
 
 import (
-	"errors"
 	"sync"
 )
 
@@ -29,7 +28,7 @@ type MeteoData struct {
 	Pressure int
 }
 
-type Sensor struct {
+type MeteoSensor struct {
 	Name    string
 	Type    string
 	IP      string
@@ -39,11 +38,11 @@ type Sensor struct {
 }
 
 type MeteoStation struct {
-	Sensors map[string]*Sensor
+	Sensors map[string]*MeteoSensor
 }
 
 // SetMeteoData set new meteo data to sensor
-func (s *Sensor) SetMeteoData(data *MeteoData) {
+func (s *MeteoSensor) SetMeteoData(data *MeteoData) {
 	s.Mtx.Lock()
 	s.Data.Temp = data.Temp
 	s.Data.Humidity = data.Humidity
@@ -52,7 +51,7 @@ func (s *Sensor) SetMeteoData(data *MeteoData) {
 }
 
 // MeteoData get meteo data from sensor
-func (s *Sensor) MeteoData() MeteoData {
+func (s *MeteoSensor) MeteoData() MeteoData {
 	var data MeteoData
 
 	s.Mtx.Lock()
@@ -66,39 +65,35 @@ func (s *Sensor) MeteoData() MeteoData {
 
 // NewMeteoStation make new struct
 func NewMeteoStation() *MeteoStation {
-	m := &MeteoStation{}
-
-	m.Sensors = make(map[string]*Sensor)
-
-	return m
+	sensors := make(map[string]*MeteoSensor)
+	return &MeteoStation{
+		Sensors: sensors,
+	}
 }
 
-// AddSensor add new meteo sensor
-func (m *MeteoStation) AddSensor(name string, sType string, ip string, ch int) {
-	sensor := &Sensor{
+// NewMeteoSensor make new meteo sensor
+func (m *MeteoStation) NewMeteoSensor(name string, sType string, ip string, ch int) *MeteoSensor {
+	return &MeteoSensor{
 		Name:    name,
 		Type:    sType,
 		IP:      ip,
 		Channel: ch,
 	}
+}
 
+// AddSensor add new meteo sensor
+func (m *MeteoStation) AddSensor(name string, sensor *MeteoSensor) {
 	m.Sensors[name] = sensor
 }
 
-// Sensor get meteo sensor
-func (m *MeteoStation) Sensor(name string) (*Sensor, error) {
-	s := m.Sensors[name]
-
-	if s == nil {
-		return nil, errors.New("sensor not found")
-	}
-
-	return s, nil
+// MeteoSensor get meteo sensor
+func (m *MeteoStation) Sensor(name string) *MeteoSensor {
+	return m.Sensors[name]
 }
 
 // AllSensors get all sensors list
-func (m *MeteoStation) AllSensors() []*Sensor {
-	var sensors []*Sensor
+func (m *MeteoStation) AllSensors() []*MeteoSensor {
+	var sensors []*MeteoSensor
 
 	for _, sensor := range m.Sensors {
 		sensors = append(sensors, sensor)

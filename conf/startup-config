@@ -1,4 +1,26 @@
-airctrl threshold cab_529 int 22
-airctrl threshold cab_530 int 21
-airctrl status cab_529 bool true
-airctrl status cab_530 bool false
+!
+!
+meteo add-device room
+meteo ip room 127.0.0.1
+meteo type room dht22
+meteo channel room 0
+!
+!
+display add-device house
+display ip house 127.0.0.1
+display sensors house room
+!
+!
+airctrl add-device room
+airctrl ip room 127.0.0.1
+airctrl sensor room room
+airctrl threshold room 20
+airctrl status room false
+!
+!
+db add-base meteodb 127.0.0.1 3306 serg cisco meteo
+!
+!
+timer add-delay meteo-lcd 22
+timer add-delay meteo-sensors 22
+timer add-delay meteo-db 22

@@ -71,8 +71,7 @@ func (m *MeteoTask) TaskHandler() {
 			sensors := m.meteo.AllSensors()
 
 			for _, sensor := range sensors {
-				ctrl := NewWiFiController(sensor.Type, sensor.IP, sensor.Channel)
-				data, err := ctrl.SyncMeteoData()
+				data, err := m.meteo.SyncMeteoData(sensor.Type, sensor.IP, sensor.Channel)
 				if err != nil {
 					continue
 				}

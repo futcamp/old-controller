@@ -73,7 +73,7 @@ func (m *MeteoHandler) ProcessMeteoAllHandler(req *http.Request) ([]byte, error)
 		sensors = append(sensors, s)
 	}
 
-	netdata.SetRestResponse(data, "meteo", "meteo Station", sensors, req)
+	netdata.SetRestResponse(data, "meteo", "Meteo Station", sensors, req)
 
 	jData, _ := json.Marshal(data)
 	return jData, nil

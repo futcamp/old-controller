@@ -20,9 +20,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/futcamp/controller/modules/airctrl"
 	"github.com/futcamp/controller/modules/meteo"
-	"github.com/futcamp/controller/modules/thermoctrl"
 	"github.com/futcamp/controller/monitoring"
 	"github.com/futcamp/controller/net"
 	"github.com/futcamp/controller/net/handlers"
@@ -53,13 +51,6 @@ func main() {
 	container.Provide(monitoring.NewDeviceMonitor)
 	container.Provide(monitoring.NewMonitorTask)
 	container.Provide(handlers.NewMonitorHandler)
-
-	container.Provide(airctrl.NewAirControl)
-	container.Provide(airctrl.NewAirCtrlTask)
-	container.Provide(startup.NewAirctrlStartupCfg)
-
-	container.Provide(thermoctrl.NewThermoControl)
-	container.Provide(thermoctrl.NewThermoCtrlTask)
 
 	container.Provide(configs.NewConfigs)
 	container.Provide(configs.NewDynamicConfigs)

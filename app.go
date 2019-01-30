@@ -18,7 +18,6 @@
 package main
 
 import (
-	"github.com/futcamp/controller/modules/airctrl"
 	"github.com/futcamp/controller/modules/meteo"
 	"github.com/futcamp/controller/monitoring"
 	"github.com/futcamp/controller/net"
@@ -40,8 +39,6 @@ type Application struct {
 	meteoDB     *meteo.MeteoDatabase
 	monitor     *monitoring.DeviceMonitor
 	monitorTask *monitoring.MonitorTask
-	airCtrl     *airctrl.AirControl
-	airTask     *airctrl.AirCtrlTask
 	startupMods *io.StartupMods
 }
 
@@ -50,7 +47,7 @@ func NewApplication(log *utils.Logger, cfg *configs.Configs,
 	meteo *meteo.MeteoStation, srv *net.WebServer, mTask *meteo.MeteoTask,
 	lTask *utils.LogTask, lck *utils.Locker, mdb *meteo.MeteoDatabase,
 	monitor *monitoring.DeviceMonitor, monitorTask *monitoring.MonitorTask,
-	ac *airctrl.AirControl, acTask *airctrl.AirCtrlTask, sm *io.StartupMods) *Application {
+	sm *io.StartupMods) *Application {
 	return &Application{
 		log:         log,
 		cfg:         cfg,
@@ -62,8 +59,6 @@ func NewApplication(log *utils.Logger, cfg *configs.Configs,
 		meteoDB:     mdb,
 		monitor:     monitor,
 		monitorTask: monitorTask,
-		airCtrl:     ac,
-		airTask:     acTask,
 		startupMods: sm,
 	}
 }
@@ -91,7 +86,6 @@ func (a *Application) Start() {
 	// Start all application tasks
 	go a.logTask.Start()
 	go a.meteoTask.Start()
-	go a.airTask.Start()
 	go a.monitorTask.Start()
 
 	// Start web server

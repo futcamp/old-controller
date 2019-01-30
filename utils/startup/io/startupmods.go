@@ -21,7 +21,6 @@ import (
 	"errors"
 	"strconv"
 
-	"github.com/futcamp/controller/modules/airctrl"
 	"github.com/futcamp/controller/modules/meteo"
 	"github.com/futcamp/controller/utils/configs"
 
@@ -30,18 +29,16 @@ import (
 
 type StartupMods struct {
 	cfg      *StartupIO
-	airCtrl  *airctrl.AirControl
 	meteo    *meteo.MeteoStation
 	dynCfg   *configs.DynamicConfigs
 	meteoLCD *meteo.MeteoDisplays
 }
 
 // NewStartupMods make new struct
-func NewStartupMods(cfg *StartupIO, ac *airctrl.AirControl, dc *configs.DynamicConfigs,
+func NewStartupMods(cfg *StartupIO, dc *configs.DynamicConfigs,
 	meteo *meteo.MeteoStation, mlcd *meteo.MeteoDisplays) *StartupMods {
 	return &StartupMods{
 		cfg:      cfg,
-		airCtrl:  ac,
 		dynCfg:   dc,
 		meteo:    meteo,
 		meteoLCD: mlcd,
@@ -58,10 +55,6 @@ func (s *StartupMods) LoadFromFile(fileName string) error {
 
 		case "display":
 			s.applyMeteoLCDCfg(cmd.Command, cmd.Device, cmd.Args)
-			break
-
-		case "airctrl":
-			s.applyAirCtrlCfg(cmd.Command, cmd.Device, cmd.Args)
 			break
 
 		case "db":
@@ -91,10 +84,6 @@ func (s *StartupMods) SaveModCommand(fileName string, module string, cmd string,
 
 	case "display":
 		s.applyMeteoLCDCfg(cmd, dev, args)
-		break
-
-	case "airctrl":
-		s.applyAirCtrlCfg(cmd, dev, args)
 		break
 
 	case "db":
@@ -187,53 +176,6 @@ func (s *StartupMods) applyMeteoLCDCfg(cmd string, dev string, args []string) er
 			lcd.AddDisplayingSensor(sensor)
 			logger.Infof("display add displaying sensor \"%s\" for device \"%s\"", sensor, dev)
 		}
-		break
-	}
-
-	return nil
-}
-
-// applyAirCtrlCfg apply commands for air control module
-func (s *StartupMods) applyAirCtrlCfg(cmd string, dev string, args []string) error {
-	switch cmd {
-	case "add-device":
-		mod := airctrl.NewAirCtrlModule(dev, "", "", 0)
-		s.airCtrl.AddModule(dev, mod)
-		logger.Infof("airctrl add new device \"%s\"", dev)
-		break
-
-	case "ip":
-		module := s.airCtrl.Module(dev)
-		module.IP = args[0]
-		logger.Infof("airctrl set ip address \"%s\" for device \"%s\"", module.IP, dev)
-		break
-
-	case "sensor":
-		module := s.airCtrl.Module(dev)
-		module.Sensor = args[0]
-		logger.Infof("airctrl set sensor \"%s\" for device \"%s\"", module.Sensor, dev)
-		break
-
-	case "threshold":
-		humidity, err := strconv.Atoi(args[0])
-		if err != nil {
-			return err
-		}
-
-		module := s.airCtrl.Module(dev)
-		module.SetThreshold(humidity)
-		logger.Infof("airctrl apply threshold value \"%d\" for device \"%s\"", module.Threshold(), dev)
-		break
-
-	case "status":
-		status, err := strconv.ParseBool(args[0])
-		if err != nil {
-			return err
-		}
-
-		module := s.airCtrl.Module(dev)
-		module.SwitchHumidityControl(status)
-		logger.Infof("airctrl apply status value \"%t\" for device \"%s\"", module.HumidityControl(), dev)
 		break
 	}
 

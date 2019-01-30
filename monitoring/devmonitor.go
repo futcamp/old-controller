@@ -2,7 +2,7 @@
 /*
 /* Future Camp Project
 /*
-/* Copyright (C) 2018 Sergey Denisov.
+/* Copyright (C) 2018-2019 Sergey Denisov.
 /*
 /* Written by Sergey Denisov aka LittleBuster (DenisovS21@gmail.com)
 /* Github: https://github.com/LittleBuster
@@ -18,7 +18,10 @@
 package monitoring
 
 import (
+	"fmt"
 	"sync"
+
+	"github.com/futcamp/controller/notifier"
 
 	"github.com/google/logger"
 )
@@ -33,8 +36,10 @@ type Device struct {
 }
 
 type DeviceMonitor struct {
-	Devices    []*Device
-	FirstCheck bool
+	name string
+	notify     *notifier.Notifier
+	devices    []*Device
+	firstCheck bool
 }
 
 // Status get device status
@@ -56,10 +61,16 @@ func (d *Device) SetStatus(status bool) {
 }
 
 // NewDeviceMonitor make new struct
-func NewDeviceMonitor() *DeviceMonitor {
+func NewDeviceMonitor(ntf *notifier.Notifier) *DeviceMonitor {
 	return &DeviceMonitor{
-		FirstCheck: true,
+		firstCheck: true,
+		notify:     ntf,
 	}
+}
+
+// SetName set monitor name
+func (d *DeviceMonitor) SetName(name string) {
+	d.name = name
 }
 
 // AddDevice add new device
@@ -70,17 +81,17 @@ func (d *DeviceMonitor) AddDevice(name string, devType string, ip string) {
 		Type: devType,
 		Stat: false,
 	}
-	d.Devices = append(d.Devices, dev)
+	d.devices = append(d.devices, dev)
 }
 
 // AllDevices get devices list
 func (d *DeviceMonitor) AllDevices() *[]*Device {
-	return &d.Devices
+	return &d.devices
 }
 
 // CheckDevices check states of devices
 func (d *DeviceMonitor) CheckDevices() {
-	for _, device := range d.Devices {
+	for _, device := range d.devices {
 		wdev := NewWiFiController(device.IP)
 		status := wdev.DeviceStatus()
 
@@ -88,19 +99,20 @@ func (d *DeviceMonitor) CheckDevices() {
 		if status != device.Stat {
 			device.SetStatus(status)
 			d.SendNotify(device)
-		} else if d.FirstCheck {
+		} else if d.firstCheck {
 			d.SendNotify(device)
 		}
 	}
 
-	if d.FirstCheck {
-		d.FirstCheck = false
+	if d.firstCheck {
+		d.firstCheck = false
 	}
 }
 
 // SendNotify send notify with status
 func (d *DeviceMonitor) SendNotify(device *Device) {
 	var status string
+	var message string
 
 	if device.Status() {
 		status = "Online"
@@ -108,6 +120,9 @@ func (d *DeviceMonitor) SendNotify(device *Device) {
 		status = "Offline"
 	}
 
-	logger.Infof("Device %s type %s is %s", device.Name,
+	message = fmt.Sprintf("Device %s type %s is %s", device.Name,
 		device.Type, status)
+
+	logger.Infof(message)
+	d.notify.SendNotify("Monitor", message)
 }

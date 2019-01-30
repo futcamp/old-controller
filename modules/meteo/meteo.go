@@ -63,6 +63,25 @@ func (s *MeteoSensor) MeteoData() MeteoData {
 	return data
 }
 
+// SyncMeteoData get meteo data from controller
+func (s *MeteoSensor) SyncMeteoData() error {
+	var mData MeteoData
+
+	ctrl := NewWiFiController(s.Type, s.IP, s.Channel)
+	data, err := ctrl.SyncMeteoData()
+	if err != nil {
+		return err
+	}
+
+	mData.Temp = data.Temp
+	mData.Humidity = data.Humidity
+	mData.Pressure = data.Pressure
+
+	s.SetMeteoData(&mData)
+
+	return nil
+}
+
 // NewMeteoStation make new struct
 func NewMeteoStation() *MeteoStation {
 	sensors := make(map[string]*MeteoSensor)
@@ -100,21 +119,4 @@ func (m *MeteoStation) AllSensors() []*MeteoSensor {
 	}
 
 	return sensors
-}
-
-// SyncMeteoData get meteo data from controller
-func (m *MeteoStation) SyncMeteoData(sensType string, ip string, channel int) (MeteoData, error) {
-	var mData MeteoData
-
-	ctrl := NewWiFiController(sensType, ip, channel)
-	data, err := ctrl.SyncMeteoData()
-	if err != nil {
-		return mData, err
-	}
-
-	mData.Temp = data.Temp
-	mData.Humidity = data.Humidity
-	mData.Pressure = data.Pressure
-
-	return mData, nil
 }

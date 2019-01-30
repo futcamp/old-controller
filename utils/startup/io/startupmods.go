@@ -22,26 +22,33 @@ import (
 	"strconv"
 
 	"github.com/futcamp/controller/modules/meteo"
+	"github.com/futcamp/controller/monitoring"
+	"github.com/futcamp/controller/notifier"
 	"github.com/futcamp/controller/utils/configs"
 
 	"github.com/google/logger"
 )
 
 type StartupMods struct {
-	cfg      *StartupIO
-	meteo    *meteo.MeteoStation
-	dynCfg   *configs.DynamicConfigs
-	meteoLCD *meteo.MeteoDisplays
+	cfg        *StartupIO
+	meteo      *meteo.MeteoStation
+	dynCfg     *configs.DynamicConfigs
+	meteoLCD   *meteo.MeteoDisplays
+	notify     *notifier.Notifier
+	devMonitor *monitoring.DeviceMonitor
 }
 
 // NewStartupMods make new struct
 func NewStartupMods(cfg *StartupIO, dc *configs.DynamicConfigs,
-	meteo *meteo.MeteoStation, mlcd *meteo.MeteoDisplays) *StartupMods {
+	meteo *meteo.MeteoStation, mlcd *meteo.MeteoDisplays,
+	ntf *notifier.Notifier, mon *monitoring.DeviceMonitor) *StartupMods {
 	return &StartupMods{
-		cfg:      cfg,
-		dynCfg:   dc,
-		meteo:    meteo,
-		meteoLCD: mlcd,
+		cfg:        cfg,
+		dynCfg:     dc,
+		meteo:      meteo,
+		meteoLCD:   mlcd,
+		notify:     ntf,
+		devMonitor: mon,
 	}
 }
 
@@ -63,6 +70,14 @@ func (s *StartupMods) LoadFromFile(fileName string) error {
 
 		case "timer":
 			s.applyTimerCfg(cmd.Command, cmd.Device, cmd.Args)
+			break
+
+		case "notify":
+			s.applyNotifyCfg(cmd.Command, cmd.Device, cmd.Args)
+			break
+
+		case "monitor":
+			s.applyMonitorCfg(cmd.Command, cmd.Device, cmd.Args)
 			break
 		}
 	})
@@ -92,6 +107,14 @@ func (s *StartupMods) SaveModCommand(fileName string, module string, cmd string,
 
 	case "timer":
 		s.applyTimerCfg(cmd, dev, args)
+		break
+
+	case "notify":
+		s.applyNotifyCfg(cmd, dev, args)
+		break
+
+	case "monitor":
+		s.applyMonitorCfg(cmd, dev, args)
 		break
 	}
 
@@ -124,19 +147,19 @@ func (s *StartupMods) applyMeteoCfg(cmd string, dev string, args []string) error
 	case "add-device":
 		sensor := s.meteo.NewMeteoSensor(dev, "", "", 0)
 		s.meteo.AddSensor(dev, sensor)
-		logger.Infof("meteo add new device \"%s\"", dev)
+		logger.Infof("Meteo add new device \"%s\"", dev)
 		break
 
 	case "ip":
 		sensor := s.meteo.Sensor(dev)
 		sensor.IP = args[0]
-		logger.Infof("meteo set ip address \"%s\" for device \"%s\"", sensor.IP, dev)
+		logger.Infof("Meteo set ip address \"%s\" for device \"%s\"", sensor.IP, dev)
 		break
 
 	case "type":
 		sensor := s.meteo.Sensor(dev)
 		sensor.Type = args[0]
-		logger.Infof("meteo set sensor type \"%s\" for device \"%s\"", sensor.Type, dev)
+		logger.Infof("Meteo set sensor type \"%s\" for device \"%s\"", sensor.Type, dev)
 		break
 
 	case "channel":
@@ -147,7 +170,7 @@ func (s *StartupMods) applyMeteoCfg(cmd string, dev string, args []string) error
 
 		sensor := s.meteo.Sensor(dev)
 		sensor.Channel = ch
-		logger.Infof("meteo set sensor channel \"%d\" for device \"%s\"", sensor.Channel, dev)
+		logger.Infof("Meteo set sensor channel \"%d\" for device \"%s\"", sensor.Channel, dev)
 		break
 	}
 
@@ -160,13 +183,13 @@ func (s *StartupMods) applyMeteoLCDCfg(cmd string, dev string, args []string) er
 	case "add-device":
 		lcd := meteo.NewMeteoDisplay(dev, "")
 		s.meteoLCD.AddMeteoDisplay(dev, lcd)
-		logger.Infof("display add new device \"%s\"", dev)
+		logger.Infof("Display add new device \"%s\"", dev)
 		break
 
 	case "ip":
 		lcd := s.meteoLCD.Display(dev)
 		lcd.IP = args[0]
-		logger.Infof("display set ip address \"%s\" for device \"%s\"", lcd.IP, dev)
+		logger.Infof("Display set ip address \"%s\" for device \"%s\"", lcd.IP, dev)
 		break
 
 	case "sensors":
@@ -174,7 +197,7 @@ func (s *StartupMods) applyMeteoLCDCfg(cmd string, dev string, args []string) er
 
 		for _, sensor := range args {
 			lcd.AddDisplayingSensor(sensor)
-			logger.Infof("display add displaying sensor \"%s\" for device \"%s\"", sensor, dev)
+			logger.Infof("Display add displaying sensor \"%s\" for device \"%s\"", sensor, dev)
 		}
 		break
 	}
@@ -207,7 +230,54 @@ func (s *StartupMods) applyTimerCfg(cmd string, dev string, args []string) error
 		return errors.New("command not found")
 	}
 
-	logger.Infof("global apply timer delay \"%d\" for timer \"%s\"", delay, dev)
+	logger.Infof("Global apply timer delay \"%d\" for timer \"%s\"", delay, dev)
+
+	return nil
+}
+
+// applyNotifyCfg apply commands for notifier
+func (s *StartupMods) applyNotifyCfg(cmd string, dev string, args []string) error {
+	switch cmd {
+	case "add-server":
+		s.notify.SetName(dev)
+		logger.Infof("Notifier add new server \"%s\"", dev)
+		break
+
+	case "api-key":
+		s.notify.SetApiKey(args[0])
+		logger.Infof("Notifier set api-key \"%s\" for server \"%s\"", args[0], dev)
+		break
+
+	case "chat-id":
+		for _, chatID := range args {
+			s.notify.AddChatID(chatID)
+			logger.Infof("Notifier add ChatID \"%s\" for server \"%s\"", chatID, dev)
+		}
+		break
+	}
+
+	return nil
+}
+
+// applyMonitorCfg apply commands for devices monitor
+func (s *StartupMods) applyMonitorCfg(cmd string, dev string, args []string) error {
+	switch cmd {
+	case "add-monitor":
+		s.devMonitor.SetName(dev)
+		logger.Infof("Monitor add new monitor \"%s\"", dev)
+		break
+
+	case "device":
+		switch args[0] {
+		case "meteo":
+			sensor := s.meteo.Sensor(args[1])
+			s.devMonitor.AddDevice(sensor.Name, "meteo", sensor.IP)
+			break
+		}
+
+		logger.Infof("Monitor add new device \"%s:%s\" for monitor \"%s\"", args[0], args[1], dev)
+		break
+	}
 
 	return nil
 }
@@ -232,7 +302,7 @@ func (s *StartupMods) applyDBCfg(cmd string, dev string, args []string) error {
 		return errors.New("command not found")
 	}
 
-	logger.Infof("global apply database configs for base \"%s\"", dev)
+	logger.Infof("Global apply database configs for base \"%s\"", dev)
 
 	return nil
 }

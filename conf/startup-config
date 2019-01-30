@@ -5,17 +5,15 @@ meteo ip room 127.0.0.1
 meteo type room dht22
 meteo channel room 0
 !
+meteo add-device street
+meteo ip street 127.0.0.1
+meteo type street dht22
+meteo channel street 0
+!
 !
 display add-device house
 display ip house 127.0.0.1
 display sensors house room
-!
-!
-airctrl add-device room
-airctrl ip room 127.0.0.1
-airctrl sensor room room
-airctrl threshold room 20
-airctrl status room false
 !
 !
 db add-base meteodb 127.0.0.1 3306 serg cisco meteo
@@ -24,3 +22,14 @@ db add-base meteodb 127.0.0.1 3306 serg cisco meteo
 timer add-delay meteo-lcd 22
 timer add-delay meteo-sensors 22
 timer add-delay meteo-db 22
+!
+!
+notify add-server telegram
+notify api-key telegram 123:123456
+notify chat-id telegram 123
+!
+!
+monitor add-monitor main
+monitor device main meteo room
+monitor device main meteo street
+monitor device main display house

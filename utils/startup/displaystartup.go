@@ -48,7 +48,7 @@ func (m *DisplayStartupCfg) SetIP(device string, ip string) error {
 	return m.mods.SaveModCommand(utils.StartupCfgPath, "display", "ip", device, []string{ip})
 }
 
-// SetIP set display IP
-func (m *DisplayStartupCfg) SetSensors(device string, ip string) error {
-	return m.mods.SaveModCommand(utils.StartupCfgPath, "display", "ip", device, []string{ip})
+// SetSensors set displayed sensors
+func (m *DisplayStartupCfg) SetSensors(device string, sensors []string) error {
+	return m.mods.SaveModCommand(utils.StartupCfgPath, "display", "sensors", device, sensors)
 }

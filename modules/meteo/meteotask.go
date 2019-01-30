@@ -70,17 +70,12 @@ func (m *MeteoTask) TaskHandler() {
 			m.sensorsCounter = 0
 			sensors := m.meteo.AllSensors()
 
+			// Get actual data from controllers
 			for _, sensor := range sensors {
-				data, err := m.meteo.SyncMeteoData(sensor.Type, sensor.IP, sensor.Channel)
+				err := sensor.SyncMeteoData()
 				if err != nil {
 					continue
 				}
-
-				sensor.SetMeteoData(&MeteoData{
-					Temp:     data.Temp,
-					Humidity: data.Humidity,
-					Pressure: data.Pressure,
-				})
 			}
 		}
 

@@ -59,7 +59,7 @@ func (m *MonitorHandler) ProcessMonitoring(req *http.Request) ([]byte, error) {
 		device.Online = dev.Status()
 		devices = append(devices, device)
 	}
-	netdata.SetRestResponse(data, "monitoring", "Devices status monitoring", devices, req)
+	netdata.SetRestResponse(data, "monitoring", "devices status monitoring", devices, req)
 
 	jData, _ := json.Marshal(data)
 	return jData, nil

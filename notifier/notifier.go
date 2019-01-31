@@ -19,9 +19,8 @@ package notifier
 
 import (
 	"fmt"
-	"strconv"
-
 	"gopkg.in/telegram-bot-api.v4"
+	"strconv"
 )
 
 type Notifier struct {
@@ -63,7 +62,7 @@ func (n *Notifier) SendNotify(module string, message string) error {
 		if err != nil {
 			return err
 		}
-		msg := tgbotapi.NewMessage(int64(id), fmt.Sprintf("<b>%s</b><br>%s", module, message))
+		msg := tgbotapi.NewMessage(int64(id), fmt.Sprintf("<b>%s</b> %s", module, message))
 		msg.ParseMode = "HTML"
 		bot.Send(msg)
 	}

@@ -55,42 +55,43 @@ func NewStartupMods(cfg *StartupIO, dc *configs.DynamicConfigs,
 // LoadFromFile loading configs from file
 func (s *StartupMods) LoadFromFile(fileName string) error {
 	err := s.cfg.LoadCommands(fileName, func(cmd *StartupCmd) {
-		switch cmd.Module {
-		case "meteo":
-			s.applyMeteoCfg(cmd.Command, cmd.Device, cmd.Args)
-			break
-
-		case "display":
-			s.applyMeteoLCDCfg(cmd.Command, cmd.Device, cmd.Args)
-			break
-
-		case "db":
-			s.applyDBCfg(cmd.Command, cmd.Device, cmd.Args)
-			break
-
-		case "timer":
-			s.applyTimerCfg(cmd.Command, cmd.Device, cmd.Args)
-			break
-
-		case "notify":
-			s.applyNotifyCfg(cmd.Command, cmd.Device, cmd.Args)
-			break
-
-		case "monitor":
-			s.applyMonitorCfg(cmd.Command, cmd.Device, cmd.Args)
-			break
-		}
+		s.applyConfigs(cmd.Module, cmd.Command, cmd.Device, cmd.Args)
 	})
-
 	return err
 }
 
-// SaveModCommand save module command to startup-configs
-func (s *StartupMods) SaveModCommand(fileName string, module string, cmd string, dev string, args []string) error {
+// ExecModCommand exec module command
+func (s *StartupMods) ExecModCommand(fileName string, module string, cmd string, dev string, args []string) error {
 
 	// Add command to command list
 	s.cfg.AddCommand(module, cmd, dev, args)
 
+	// Apply current command to application
+	s.applyConfigs(module, cmd, dev, args)
+
+	return nil
+}
+
+// SaveCommands save all commands to startup-configs file
+func (s *StartupMods) SaveCommands(fileName string) error {
+	// Save command to file
+	err := s.cfg.SaveCommands(fileName)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// DeleteModCommand delete command from startup-configs
+func (s *StartupMods) DeleteModCommand(fileName string, module string, cmd string, dev string) error {
+	// Delete command from command list
+	s.cfg.DeleteCommand(module, cmd, dev)
+
+	return nil
+}
+
+// applyConfigs general function for applying configs
+func (s *StartupMods) applyConfigs(module string, cmd string, dev string, args []string) {
 	// Apply command to application
 	switch module {
 	case "meteo":
@@ -117,28 +118,6 @@ func (s *StartupMods) SaveModCommand(fileName string, module string, cmd string,
 		s.applyMonitorCfg(cmd, dev, args)
 		break
 	}
-
-	// Save command to file
-	err := s.cfg.SaveCommands(fileName)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// DeleteModCommand delete command from startup-configs
-func (s *StartupMods) DeleteModCommand(fileName string, module string, cmd string, dev string) error {
-	// Delete command from command list
-	s.cfg.DeleteCommand(module, cmd, dev)
-
-	// Save command to file
-	err := s.cfg.SaveCommands(fileName)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // applyMeteoCfg apply commands for meteo module

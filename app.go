@@ -23,8 +23,7 @@ import (
 	"github.com/futcamp/controller/net"
 	"github.com/futcamp/controller/utils"
 	"github.com/futcamp/controller/utils/configs"
-	"github.com/futcamp/controller/utils/startup/io"
-
+	"github.com/futcamp/controller/utils/startup"
 	"github.com/google/logger"
 )
 
@@ -39,7 +38,7 @@ type Application struct {
 	meteoDB     *meteo.MeteoDatabase
 	monitor     *monitoring.DeviceMonitor
 	monitorTask *monitoring.MonitorTask
-	startupMods *io.StartupMods
+	startup     *startup.Startup
 }
 
 // NewApplication make new struct
@@ -47,7 +46,7 @@ func NewApplication(log *utils.Logger, cfg *configs.Configs,
 	meteo *meteo.MeteoStation, srv *net.WebServer, mTask *meteo.MeteoTask,
 	lTask *utils.LogTask, lck *utils.Locker, mdb *meteo.MeteoDatabase,
 	monitor *monitoring.DeviceMonitor, monitorTask *monitoring.MonitorTask,
-	sm *io.StartupMods) *Application {
+	stp *startup.Startup) *Application {
 	return &Application{
 		log:         log,
 		cfg:         cfg,
@@ -59,7 +58,7 @@ func NewApplication(log *utils.Logger, cfg *configs.Configs,
 		meteoDB:     mdb,
 		monitor:     monitor,
 		monitorTask: monitorTask,
-		startupMods: sm,
+		startup:     stp,
 	}
 }
 
@@ -67,7 +66,7 @@ func NewApplication(log *utils.Logger, cfg *configs.Configs,
 func (a *Application) Start() {
 	a.log.Init(utils.LogPath)
 
-	// Load app configs
+	// Load general application configs
 	err := a.cfg.LoadFromFile(utils.ConfigsPath)
 	if err != nil {
 		logger.Errorf("Fail to load %s configs", "main")
@@ -76,7 +75,8 @@ func (a *Application) Start() {
 	}
 	logger.Infof("Configs %s was loaded", "main")
 
-	err = a.startupMods.LoadFromFile(utils.StartupCfgPath)
+	// Loading startup-configs from file and applying to application
+	err = a.startup.Load(utils.StartupCfgPath)
 	if err != nil {
 		logger.Error("Fail to read startup configs")
 		logger.Error(err.Error())

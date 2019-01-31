@@ -130,14 +130,24 @@ func (s *StartupIO) AddCommand(mod string, cmd string, dev string, args []string
 	}
 
 	found := false
-	for _, curCmd := range s.cmds {
-		if curCmd.Module == mod && curCmd.Device == dev {
+	wrote := false
+	lastId := 0
+
+	for i, curCmd := range s.cmds {
+		if curCmd.Module == mod {
+			lastId = i
+		}
+
+		if curCmd.Module == c.Module && curCmd.Device == c.Device {
 			found = true
 			if curCmd.Command[0] == 'a' && curCmd.Command[1] == 'd' && curCmd.Command[2] == 'd' {
+				wrote = true
 				newCmds = append(newCmds, curCmd)
 				newCmds = append(newCmds, c)
 			} else {
-				newCmds = append(newCmds, c)
+				if !wrote {
+					newCmds = append(newCmds, c)
+				}
 				newCmds = append(newCmds, curCmd)
 			}
 		} else {
@@ -146,10 +156,27 @@ func (s *StartupIO) AddCommand(mod string, cmd string, dev string, args []string
 	}
 
 	if !found {
-		s.cmds = append(s.cmds, c)
+		if lastId != 0 {
+			newCmds = make([]*StartupCmd, 0)
+
+			for i, curCmd := range s.cmds {
+				if i == lastId {
+					newCmds = append(newCmds, curCmd)
+					newCmds = append(newCmds, c)
+				} else {
+					newCmds = append(newCmds, curCmd)
+				}
+			}
+
+			s.cmds = newCmds
+		} else {
+			s.cmds = append(s.cmds, c)
+		}
 	} else {
 		s.cmds = newCmds
 	}
+
+
 }
 
 // DeleteCommand delete command

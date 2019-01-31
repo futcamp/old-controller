@@ -115,14 +115,14 @@ func (d *DeviceMonitor) SendNotify(device *Device) {
 	var message string
 
 	if device.Status() {
-		status = "Online"
+		status = "online"
 	} else {
-		status = "Offline"
+		status = "offline"
 	}
 
-	message = fmt.Sprintf("Device %s type %s is %s", device.Name,
+	message = fmt.Sprintf("device \"%s\" module \"%s\" is \"%s\"", device.Name,
 		device.Type, status)
 
 	logger.Infof(message)
-	d.notify.SendNotify("Monitor", message)
+	d.notify.SendNotify("Monitor:", message)
 }

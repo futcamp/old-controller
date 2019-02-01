@@ -19,15 +19,15 @@ package main
 
 import (
 	"fmt"
-	"github.com/futcamp/controller/notifier"
-	"github.com/futcamp/controller/utils/startup"
 
 	"github.com/futcamp/controller/modules/meteo"
 	"github.com/futcamp/controller/monitoring"
 	"github.com/futcamp/controller/net"
 	"github.com/futcamp/controller/net/handlers"
+	"github.com/futcamp/controller/notifier"
 	"github.com/futcamp/controller/utils"
 	"github.com/futcamp/controller/utils/configs"
+	"github.com/futcamp/controller/utils/startup"
 	"github.com/futcamp/controller/utils/startup/io"
 
 	"go.uber.org/dig"

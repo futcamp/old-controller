@@ -194,15 +194,15 @@ func (s *StartupMods) applyTimerCfg(cmd string, dev string, args []string) error
 	if cmd == "add-delay" {
 		switch dev {
 		case "meteo-sensors":
-			s.dynCfg.Timers.MeteoSensorsDelay = delay
+			s.dynCfg.Settings().Timers.MeteoSensorsDelay = delay
 			break
 
 		case "meteo-lcd":
-			s.dynCfg.Timers.MeteoDisplayDelay = delay
+			s.dynCfg.Settings().Timers.MeteoDisplayDelay = delay
 			break
 
 		case "meteo-db":
-			s.dynCfg.Timers.MeteoDBDelay = delay
+			s.dynCfg.Settings().Timers.MeteoDBDelay = delay
 			break
 		}
 	} else {
@@ -240,6 +240,8 @@ func (s *StartupMods) applyNotifyCfg(cmd string, dev string, args []string) erro
 
 // applyMonitorCfg apply commands for devices monitor
 func (s *StartupMods) applyMonitorCfg(cmd string, dev string, args []string) error {
+	devs := ""
+
 	switch cmd {
 	case "add-monitor":
 		s.devMonitor.SetName(dev)
@@ -249,12 +251,29 @@ func (s *StartupMods) applyMonitorCfg(cmd string, dev string, args []string) err
 	case "device":
 		switch args[0] {
 		case "meteo":
-			sensor := s.meteo.Sensor(args[1])
-			s.devMonitor.AddDevice(sensor.Name, "meteo", sensor.IP)
+			for i, device := range args {
+				if i == 0 {
+					continue
+				}
+				devs += device + " "
+				sensor := s.meteo.Sensor(device)
+				s.devMonitor.AddDevice(sensor.Name, "meteo", sensor.IP)
+			}
+			break
+
+		case "display":
+			for i, device := range args {
+				if i == 0 {
+					continue
+				}
+				devs += device + " "
+				lcd := s.meteoLCD.Display(device)
+				s.devMonitor.AddDevice(lcd.Name, "display", lcd.IP)
+			}
 			break
 		}
 
-		logger.Infof("Monitor add new device \"%s:%s\" for monitor \"%s\"", args[0], args[1], dev)
+		logger.Infof("Monitor add new device from module \"%s\" : \"%s\" for monitor \"%s\"", args[0], devs, dev)
 		break
 	}
 
@@ -270,11 +289,11 @@ func (s *StartupMods) applyDBCfg(cmd string, dev string, args []string) error {
 			if err != nil {
 				return err
 			}
-			s.dynCfg.MeteoDB.IP = args[0]
-			s.dynCfg.MeteoDB.Port = port
-			s.dynCfg.MeteoDB.User = args[2]
-			s.dynCfg.MeteoDB.Passwd = args[3]
-			s.dynCfg.MeteoDB.Base = args[4]
+			s.dynCfg.Settings().MeteoDB.IP = args[0]
+			s.dynCfg.Settings().MeteoDB.Port = port
+			s.dynCfg.Settings().MeteoDB.User = args[2]
+			s.dynCfg.Settings().MeteoDB.Passwd = args[3]
+			s.dynCfg.Settings().MeteoDB.Base = args[4]
 			break
 		}
 	} else {

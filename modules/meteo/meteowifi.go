@@ -95,21 +95,3 @@ func (w *WiFiController) DisplayMeteoData(sensor string, data *CtrlMeteoData) er
 
 	return nil
 }
-
-// DeviceStatus device online status
-func (w *WiFiController) DeviceStatus() bool {
-	request := fmt.Sprintf("http://%s/", w.IP)
-
-	res, err := http.Get(request)
-	if err != nil {
-		return false
-	}
-	defer res.Body.Close()
-
-	_, err = ioutil.ReadAll(res.Body)
-	if err != nil {
-		return false
-	}
-
-	return true
-}

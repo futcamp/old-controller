@@ -20,10 +20,8 @@ package utils
 // File with all global path
 const (
 	ConfigsPath        = "/etc/fc/futcamp.conf"
-	MeteoConfigsPath   = "/etc/fc/meteo.conf"
-	AirCtrlConfigsPath = "/etc/fc/airctrl.conf"
 	LogPath            = "/var/log/fc/"
-	StartupCfgPath     = "/Users/sergey/startup-config"
+	StartupCfgPath     = "/etc/fc/startup-config"
 )
 
 // Database names

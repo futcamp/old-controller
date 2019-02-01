@@ -66,7 +66,7 @@ func (m *MeteoTask) TaskHandler() {
 		m.databaseCounter++
 
 		// Get actual data from controller
-		if m.sensorsCounter == m.dynCfg.Timers.MeteoSensorsDelay {
+		if m.sensorsCounter == m.dynCfg.Settings().Timers.MeteoSensorsDelay {
 			m.sensorsCounter = 0
 			sensors := m.meteo.AllSensors()
 
@@ -80,7 +80,7 @@ func (m *MeteoTask) TaskHandler() {
 		}
 
 		// Display actual data on LCDs
-		if m.displaysCounter == m.dynCfg.Timers.MeteoDisplayDelay {
+		if m.displaysCounter == m.dynCfg.Settings().Timers.MeteoDisplayDelay {
 			m.displaysCounter = 0
 			for _, display := range m.meteoLCD.Displays() {
 				for _, sensorName := range *display.Sensors() {
@@ -95,12 +95,12 @@ func (m *MeteoTask) TaskHandler() {
 		}
 
 		// Save meteo data to database
-		if m.databaseCounter == m.dynCfg.Timers.MeteoDBDelay {
+		if m.databaseCounter == m.dynCfg.Settings().Timers.MeteoDBDelay {
 			m.databaseCounter = 0
 			hour := time.Now().Hour()
 
 			if hour != m.lastHour {
-				dbCfg := m.dynCfg.MeteoDB
+				dbCfg := m.dynCfg.Settings().MeteoDB
 				err := m.meteoDB.Connect(dbCfg.IP, dbCfg.User, dbCfg.Passwd, dbCfg.Base)
 				if err != nil {
 					logger.Errorf("Fail to load %s database", "meteo")

@@ -24,6 +24,7 @@ import (
 	"github.com/futcamp/controller/utils"
 	"github.com/futcamp/controller/utils/configs"
 	"github.com/futcamp/controller/utils/startup"
+
 	"github.com/google/logger"
 )
 
@@ -75,7 +76,7 @@ func (a *Application) Start() {
 	}
 	logger.Infof("Configs %s was loaded", "main")
 
-	// Loading startup-configs from file and applying to application
+	// Load startup-configs from file and apply to application
 	err = a.startup.Load(utils.StartupCfgPath)
 	if err != nil {
 		logger.Error("Fail to read startup configs")

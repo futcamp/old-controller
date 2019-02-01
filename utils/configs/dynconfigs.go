@@ -31,12 +31,21 @@ type TimersCfg struct {
 	MeteoDBDelay      int
 }
 
-type DynamicConfigs struct {
+type Settings struct {
 	MeteoDB MeteoDBCfg
 	Timers  TimersCfg
+}
+
+type DynamicConfigs struct {
+	set Settings
 }
 
 // NewDynamicConfigs make new struct
 func NewDynamicConfigs() *DynamicConfigs {
 	return &DynamicConfigs{}
+}
+
+// Settings get settings pointer
+func (d *DynamicConfigs) Settings() *Settings {
+	return &d.set
 }

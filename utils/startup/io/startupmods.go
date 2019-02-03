@@ -117,6 +117,10 @@ func (s *StartupMods) applyConfigs(module string, cmd string, dev string, args [
 	case "monitor":
 		s.applyMonitorCfg(cmd, dev, args)
 		break
+
+	case "rcli":
+		s.applyRCliCfg(cmd, dev, args)
+		break
 	}
 }
 
@@ -276,6 +280,23 @@ func (s *StartupMods) applyMonitorCfg(cmd string, dev string, args []string) err
 		logger.Infof("Monitor add new device from module \"%s\" : \"%s\" for monitor \"%s\"", args[0], devs, dev)
 		break
 	}
+
+	return nil
+}
+
+// applyRCliCfg apply commands for RemoteCLI monitor
+func (s *StartupMods) applyRCliCfg(cmd string, dev string, args []string) error {
+	if cmd == "add-user" {
+		switch dev {
+		case "hash":
+			s.dynCfg.Settings().RCli.UserHash = args[0]
+			break
+		}
+	} else {
+		return errors.New("command not found")
+	}
+
+	logger.Infof("Global apply user hash \"%s\" for remote CLI \"%s\"", args[0], dev)
 
 	return nil
 }

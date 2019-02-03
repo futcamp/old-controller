@@ -22,7 +22,7 @@ import (
 	"net/http"
 
 	"github.com/futcamp/controller/modules/meteo"
-	"github.com/futcamp/controller/net/handlers/netdata"
+	"github.com/futcamp/controller/net/webserver/handlers/netdata"
 	"github.com/futcamp/controller/utils/configs"
 
 	"github.com/pkg/errors"

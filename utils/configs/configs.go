@@ -29,7 +29,6 @@ const (
 	ApiVersion = "v2"
 )
 
-
 type ModCfg struct {
 	Meteo   bool
 	AirCtrl bool
@@ -41,8 +40,9 @@ type ServerCfg struct {
 }
 
 type AppSettings struct {
-	Server  ServerCfg
-	Modules ModCfg
+	Server     ServerCfg
+	RCliServer ServerCfg
+	Modules    ModCfg
 }
 
 type Configs struct {

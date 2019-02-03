@@ -22,7 +22,7 @@ import (
 	"net/http"
 
 	"github.com/futcamp/controller/monitoring"
-	"github.com/futcamp/controller/net/handlers/netdata"
+	"github.com/futcamp/controller/net/webserver/handlers/netdata"
 	"github.com/futcamp/controller/utils"
 )
 

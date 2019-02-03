@@ -15,7 +15,7 @@
 /*
 /*******************************************************************/
 
-package net
+package webserver
 
 import (
 	"encoding/json"

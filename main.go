@@ -22,8 +22,9 @@ import (
 
 	"github.com/futcamp/controller/modules/meteo"
 	"github.com/futcamp/controller/monitoring"
-	"github.com/futcamp/controller/net"
-	"github.com/futcamp/controller/net/handlers"
+	"github.com/futcamp/controller/net/rcli"
+	"github.com/futcamp/controller/net/webserver"
+	"github.com/futcamp/controller/net/webserver/handlers"
 	"github.com/futcamp/controller/notifier"
 	"github.com/futcamp/controller/utils"
 	"github.com/futcamp/controller/utils/configs"
@@ -58,7 +59,8 @@ func main() {
 	container.Provide(io.NewStartupIO)
 	container.Provide(io.NewStartupMods)
 
-	container.Provide(net.NewWebServer)
+	container.Provide(webserver.NewWebServer)
+	container.Provide(rcli.NewRCliServer)
 	container.Provide(NewApplication)
 
 	err := container.Invoke(func(app *Application) {

@@ -21,7 +21,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/futcamp/controller/net/handlers/netdata"
+	"github.com/futcamp/controller/net/webserver/handlers/netdata"
 	"github.com/futcamp/controller/utils"
 )
 

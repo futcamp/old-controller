@@ -31,9 +31,14 @@ type TimersCfg struct {
 	MeteoDBDelay      int
 }
 
+type RCliCfg struct {
+	UserHash string
+}
+
 type Settings struct {
 	MeteoDB MeteoDBCfg
 	Timers  TimersCfg
+	RCli    RCliCfg
 }
 
 type DynamicConfigs struct {

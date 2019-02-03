@@ -30,6 +30,8 @@ notify chat-id telegram 123
 !
 !
 monitor add-monitor main
-monitor device main meteo room
-monitor device main meteo street
+monitor device main meteo room street
 monitor device main display house
+!
+!
+rcli add-user hash 123456

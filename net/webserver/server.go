@@ -15,7 +15,7 @@
 /*
 /*******************************************************************/
 
-package net
+package webserver
 
 import (
 	"fmt"
@@ -24,8 +24,9 @@ import (
 	"time"
 
 	"github.com/futcamp/controller/modules/meteo"
-	"github.com/futcamp/controller/net/handlers"
+	"github.com/futcamp/controller/net/webserver/handlers"
 	"github.com/futcamp/controller/utils/configs"
+
 	"github.com/google/logger"
 )
 

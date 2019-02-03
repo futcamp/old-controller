@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package rcli;
+
+service RemoteCli {
+    rpc LoginCheck(LoginRequest) returns (LoginResponse) {}
+    rpc SendCmd(CmdRequest) returns (CmdResponse) {}
+}
+
+message LoginRequest {
+    string LoginHash = 1;
+}
+
+message LoginResponse {
+    bool Result = 1;
+}
+
+message CmdRequest {
+    string LoginHash = 1;
+    string Command = 2;
+}
+
+message CmdResponse {
+    bool Result = 1;
+}

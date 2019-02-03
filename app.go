@@ -20,7 +20,8 @@ package main
 import (
 	"github.com/futcamp/controller/modules/meteo"
 	"github.com/futcamp/controller/monitoring"
-	"github.com/futcamp/controller/net"
+	"github.com/futcamp/controller/net/rcli"
+	"github.com/futcamp/controller/net/webserver"
 	"github.com/futcamp/controller/utils"
 	"github.com/futcamp/controller/utils/configs"
 	"github.com/futcamp/controller/utils/startup"
@@ -33,21 +34,23 @@ type Application struct {
 	logTask     *utils.LogTask
 	cfg         *configs.Configs
 	meteo       *meteo.MeteoStation
-	server      *net.WebServer
+	server      *webserver.WebServer
 	meteoTask   *meteo.MeteoTask
 	locker      *utils.Locker
 	meteoDB     *meteo.MeteoDatabase
 	monitor     *monitoring.DeviceMonitor
 	monitorTask *monitoring.MonitorTask
 	startup     *startup.Startup
+	rcli        *rcli.RCliServer
+	dynCfg      *configs.DynamicConfigs
 }
 
 // NewApplication make new struct
 func NewApplication(log *utils.Logger, cfg *configs.Configs,
-	meteo *meteo.MeteoStation, srv *net.WebServer, mTask *meteo.MeteoTask,
+	meteo *meteo.MeteoStation, srv *webserver.WebServer, mTask *meteo.MeteoTask,
 	lTask *utils.LogTask, lck *utils.Locker, mdb *meteo.MeteoDatabase,
 	monitor *monitoring.DeviceMonitor, monitorTask *monitoring.MonitorTask,
-	stp *startup.Startup) *Application {
+	stp *startup.Startup, rc *rcli.RCliServer, dc *configs.DynamicConfigs) *Application {
 	return &Application{
 		log:         log,
 		cfg:         cfg,
@@ -60,6 +63,8 @@ func NewApplication(log *utils.Logger, cfg *configs.Configs,
 		monitor:     monitor,
 		monitorTask: monitorTask,
 		startup:     stp,
+		rcli:        rc,
+		dynCfg:      dc,
 	}
 }
 
@@ -81,6 +86,7 @@ func (a *Application) Start() {
 	if err != nil {
 		logger.Error("Fail to read startup configs")
 		logger.Error(err.Error())
+		return
 	}
 	logger.Info("Startup configs was loaded")
 
@@ -88,6 +94,21 @@ func (a *Application) Start() {
 	go a.logTask.Start()
 	go a.meteoTask.Start()
 	go a.monitorTask.Start()
+
+	// Start RemoteCLI server
+	go func() {
+		logger.Infof("Starting RemoteCLI server at %s:%d...", a.cfg.Settings().RCliServer.IP,
+			a.cfg.Settings().RCliServer.Port)
+
+		a.rcli.SetHash(a.dynCfg.Settings().RCli.UserHash)
+
+		err = a.rcli.Start(a.cfg.Settings().RCliServer.IP, a.cfg.Settings().RCliServer.Port)
+		if err != nil {
+			logger.Error("Fail to start RemoteCLI server")
+			logger.Error(err.Error())
+			return
+		}
+	}()
 
 	// Start web server
 	logger.Infof("Starting Web server at %s:%d...", a.cfg.Settings().Server.IP,

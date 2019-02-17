@@ -18,6 +18,8 @@
 package utils
 
 import (
+	"fmt"
+	"os"
 	"time"
 )
 
@@ -52,8 +54,21 @@ func (l *LogTask) TaskHandler() {
 
 		curDate := time.Now().Format("2006-01-02")
 		if curDate != l.LastDate {
-			l.LastDate = curDate
 			l.Log.Free()
+
+			// Remove if last log file is empty
+			fileName := fmt.Sprint("%s/%s.log", LogPath, l.LastDate)
+			file, err := os.Open(fileName)
+			if err == nil {
+				stat, err := file.Stat()
+				if err == nil {
+					if stat.Size() == 0 {
+						os.Remove(fileName)
+					}
+				}
+			}
+
+			l.LastDate = curDate
 			l.Log.Init(LogPath)
 		}
 

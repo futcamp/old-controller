@@ -21,6 +21,7 @@ import (
 	"strings"
 
 	"github.com/futcamp/controller/utils/startup/io"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -58,6 +59,9 @@ func (s *Startup) ExecCmd(cmd string) error {
 			for i := FirstParam; i < len(parts); i++ {
 				params = append(params, parts[i])
 			}
+		}
+		if len(parts) < 3 {
+			return errors.New("bad command")
 		}
 		return s.mods.ExecModCommand(s.fileName, parts[0], parts[1], parts[2], params)
 	}

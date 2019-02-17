@@ -145,7 +145,7 @@ func (s *StartupMods) applyConfigs(module string, cmd string, dev string, args [
 func (s *StartupMods) applyMeteoCfg(cmd string, dev string, args []string) error {
 	switch cmd {
 	case "add-device":
-		sensor := s.meteo.NewMeteoSensor(dev, "", "", 0)
+		sensor := s.meteo.NewMeteoSensor(dev, "", "", 0, 0)
 		s.meteo.AddSensor(dev, sensor)
 		logger.Infof("Meteo add new device \"%s\"", dev)
 		break
@@ -169,8 +169,19 @@ func (s *StartupMods) applyMeteoCfg(cmd string, dev string, args []string) error
 		}
 
 		sensor := s.meteo.Sensor(dev)
-		sensor.Channel = ch
+		sensor.TempDelta = ch
 		logger.Infof("Meteo set sensor channel \"%d\" for device \"%s\"", sensor.Channel, dev)
+		break
+
+	case "temp-delta":
+		td, err := strconv.Atoi(args[0])
+		if err != nil {
+			return err
+		}
+
+		sensor := s.meteo.Sensor(dev)
+		sensor.TempDelta = td
+		logger.Infof("Meteo set sensor temperature delta \"%d\" for device \"%s\"", sensor.TempDelta, dev)
 		break
 	}
 

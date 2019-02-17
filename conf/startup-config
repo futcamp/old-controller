@@ -4,6 +4,7 @@ meteo add-device room
 meteo ip room 127.0.0.1
 meteo type room dht22
 meteo channel room 0
+meteo temp-delta room -1
 !
 meteo add-device street
 meteo ip street 127.0.0.1

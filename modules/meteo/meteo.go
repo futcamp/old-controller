@@ -21,7 +21,6 @@ import (
 	"sync"
 )
 
-
 type MeteoData struct {
 	Temp     int
 	Humidity int
@@ -29,12 +28,13 @@ type MeteoData struct {
 }
 
 type MeteoSensor struct {
-	Name    string
-	Type    string
-	IP      string
-	Channel int
-	Mtx     sync.Mutex
-	Data    MeteoData
+	Name      string
+	Type      string
+	IP        string
+	Channel   int
+	TempDelta int
+	Mtx       sync.Mutex
+	Data      MeteoData
 }
 
 type MeteoStation struct {
@@ -44,7 +44,7 @@ type MeteoStation struct {
 // SetMeteoData set new meteo data to sensor
 func (s *MeteoSensor) SetMeteoData(data *MeteoData) {
 	s.Mtx.Lock()
-	s.Data.Temp = data.Temp
+	s.Data.Temp = data.Temp + s.TempDelta
 	s.Data.Humidity = data.Humidity
 	s.Data.Pressure = data.Pressure
 	s.Mtx.Unlock()
@@ -91,12 +91,13 @@ func NewMeteoStation() *MeteoStation {
 }
 
 // NewMeteoSensor make new meteo sensor
-func (m *MeteoStation) NewMeteoSensor(name string, sType string, ip string, ch int) *MeteoSensor {
+func (m *MeteoStation) NewMeteoSensor(name string, sType string, ip string, ch int, td int) *MeteoSensor {
 	return &MeteoSensor{
-		Name:    name,
-		Type:    sType,
-		IP:      ip,
-		Channel: ch,
+		Name:      name,
+		Type:      sType,
+		IP:        ip,
+		Channel:   ch,
+		TempDelta: td,
 	}
 }
 

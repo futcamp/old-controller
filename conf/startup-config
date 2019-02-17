@@ -17,7 +17,7 @@ display ip house 127.0.0.1
 display sensors house room
 !
 !
-db add-base meteodb 127.0.0.1 3306 serg cisco meteo
+db add-base meteodb ip 127.0.0.1 port 3306 login serg password cisco base meteo
 !
 !
 timer add-delay meteo-lcd 22
@@ -35,4 +35,4 @@ monitor device main meteo room street
 monitor device main display house
 !
 !
-rcli add-user hash 123456
+rcli add-user main login serg password cisco

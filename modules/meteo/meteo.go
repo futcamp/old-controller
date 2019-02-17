@@ -105,6 +105,11 @@ func (m *MeteoStation) AddSensor(name string, sensor *MeteoSensor) {
 	m.Sensors[name] = sensor
 }
 
+// DeleteSensor delete sensor from storage
+func (m *MeteoStation) DeleteSensor(name string) {
+	delete(m.Sensors, name)
+}
+
 // MeteoSensor get meteo sensor
 func (m *MeteoStation) Sensor(name string) *MeteoSensor {
 	return m.Sensors[name]

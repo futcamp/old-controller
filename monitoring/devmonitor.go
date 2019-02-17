@@ -36,7 +36,7 @@ type Device struct {
 }
 
 type DeviceMonitor struct {
-	name string
+	name       string
 	notify     *notifier.Notifier
 	devices    []*Device
 	firstCheck bool
@@ -82,6 +82,19 @@ func (d *DeviceMonitor) AddDevice(name string, devType string, ip string) {
 		Stat: false,
 	}
 	d.devices = append(d.devices, dev)
+}
+
+// DeleteDevice delete device from storage
+func (d *DeviceMonitor) DeleteDevice(name string) {
+	var newDevs []*Device
+
+	for _, dev := range d.devices {
+		if dev.Name != name {
+			newDevs = append(newDevs, dev)
+		}
+	}
+
+	d.devices = newDevs
 }
 
 // AllDevices get devices list

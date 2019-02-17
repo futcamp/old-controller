@@ -5,6 +5,9 @@ package rcli;
 service RemoteCli {
     rpc LoginCheck(LoginRequest) returns (LoginResponse) {}
     rpc SendCmd(CmdRequest) returns (CmdResponse) {}
+    rpc ComandsList(CmdListRequest) returns (CmdListResponse) {}
+    rpc UpdateStartup(UpdateStartupRequest) returns (UpdateStartupResponse) {}
+    rpc SendLinuxCmd(LinuxCmdRequest) returns (LinuxCmdResponse) {}
 }
 
 message LoginRequest {
@@ -22,4 +25,34 @@ message CmdRequest {
 
 message CmdResponse {
     bool Result = 1;
+}
+
+message CmdListRequest {
+    string LoginHash = 1;
+}
+
+message CmdListResponse {
+    repeated string Cmds = 1;
+    bool Result = 2;
+}
+
+message UpdateStartupRequest {
+    string LoginHash = 1;
+    repeated string Cmds = 2;
+}
+
+message UpdateStartupResponse {
+    bool Result = 1;
+}
+
+message LinuxCmdRequest {
+    string LoginHash = 1;
+    string Command = 2;
+    string Args = 3;
+    string SubArgs = 4;
+}
+
+message LinuxCmdResponse {
+    string Output = 1;
+    bool Result = 2;
 }

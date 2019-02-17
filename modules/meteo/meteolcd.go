@@ -67,9 +67,14 @@ func NewMeteoDisplays() *MeteoDisplays {
 	}
 }
 
-// AddMeteoDisplay add new display
-func (m *MeteoDisplays) AddMeteoDisplay(name string, display *MeteoDisplay) {
+// AddDisplay add new display
+func (m *MeteoDisplays) AddDisplay(name string, display *MeteoDisplay) {
 	m.displays[name] = display
+}
+
+// DeleteDisplay add new display
+func (m *MeteoDisplays) DeleteDisplay(name string) {
+	delete(m.displays, name)
 }
 
 // Displays get all displays list

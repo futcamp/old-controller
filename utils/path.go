@@ -2,7 +2,7 @@
 /*
 /* Future Camp Project
 /*
-/* Copyright (C) 2018 Sergey Denisov.
+/* Copyright (C) 2018-2019 Sergey Denisov.
 /*
 /* Written by Sergey Denisov aka LittleBuster (DenisovS21@gmail.com)
 /* Github: https://github.com/LittleBuster
@@ -21,7 +21,7 @@ package utils
 const (
 	ConfigsPath        = "/etc/fc/futcamp.conf"
 	LogPath            = "/var/log/fc/"
-	StartupCfgPath     = "/etc/fc/startup-config"
+	StartupCfgPath     = "/Users/sergey/startup-config"
 )
 
 // Database names

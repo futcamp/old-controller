@@ -87,6 +87,23 @@ func (s *StartupMods) DeleteModCommand(fileName string, module string, cmd strin
 	// Delete command from command list
 	s.cfg.DeleteCommand(module, cmd, dev)
 
+	// Delete structures from storages
+	if cmd[0] == 'a' && cmd[1] == 'd' && cmd[2] == 'd' {
+		switch module {
+		case "meteo":
+			s.meteo.DeleteSensor(dev)
+			break
+
+		case "display":
+			s.meteoLCD.DeleteDisplay(dev)
+			break
+
+		case "monitor":
+			s.devMonitor.DeleteDevice(dev)
+			break
+		}
+	}
+
 	return nil
 }
 
@@ -165,7 +182,7 @@ func (s *StartupMods) applyMeteoLCDCfg(cmd string, dev string, args []string) er
 	switch cmd {
 	case "add-device":
 		lcd := meteo.NewMeteoDisplay(dev, "")
-		s.meteoLCD.AddMeteoDisplay(dev, lcd)
+		s.meteoLCD.AddDisplay(dev, lcd)
 		logger.Infof("Display add new device \"%s\"", dev)
 		break
 

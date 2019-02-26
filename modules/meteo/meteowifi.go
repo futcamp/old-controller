@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 )
 
 // CtrlMeteoData controller meteo data
@@ -58,7 +59,7 @@ func (w *WiFiController) SyncMeteoData() (CtrlMeteoData, error) {
 	var data CtrlMeteoData
 
 	res, err := http.Get(fmt.Sprintf("http://%s/meteo?chan=%d&type=%s",
-		w.IP, w.Channel, w.SensorType))
+		w.IP, w.Channel, strings.ToUpper(w.SensorType)))
 	if err != nil {
 		return data, err
 	}

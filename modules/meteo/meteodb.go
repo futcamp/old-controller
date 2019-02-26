@@ -18,11 +18,13 @@
 package meteo
 
 import (
-	"database/sql"
 	"fmt"
 	"time"
 
-	_ "github.com/lib/pq"
+	"github.com/futcamp/controller/utils"
+
+	"github.com/go-xorm/xorm"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 type MeteoDBData struct {
@@ -30,29 +32,39 @@ type MeteoDBData struct {
 	Temp     int
 	Humidity int
 	Pressure int
-	Altitude int
 	Time     string
 	Date     string
 }
 
+type DBData struct {
+	Temp int
+	Hum  int
+	Pres int
+	Time string
+	Date string
+}
+
 type MeteoDatabase struct {
-	Database *sql.DB
-	FileName string
+	engine *xorm.Engine
+	locker *utils.Locker
 }
 
 // NewMeteoDatabase make new struct
-func NewMeteoDatabase() *MeteoDatabase {
+func NewMeteoDatabase(lck *utils.Locker) *MeteoDatabase {
 	return &MeteoDatabase{
+		locker: lck,
 	}
 }
 
 // Load open database
-func (m *MeteoDatabase) Connect(ip string, user string, passwd string, db string) error {
+func (m *MeteoDatabase) Load(fileName string) error {
 	var err error
 
-	m.Database, err = sql.Open("postgres", fmt.Sprintf("postgres://%s:%s@%s/%s",
-		user, passwd, ip, db))
+	m.locker.Lock(utils.MeteoDBName)
+
+	m.engine, err = xorm.NewEngine("sqlite3", fileName)
 	if err != nil {
+		m.locker.Unlock(utils.MeteoDBName)
 		return err
 	}
 
@@ -63,24 +75,28 @@ func (m *MeteoDatabase) Connect(ip string, user string, passwd string, db string
 func (m *MeteoDatabase) AddMeteoData(data *MeteoDBData) error {
 	date := time.Now().Format("2006-01-02")
 	hour := time.Now().Hour()
+	nTime := fmt.Sprintf("%d:00", hour)
 
-	rows, err := m.Database.Query(
-		fmt.Sprintf("SELECT id FROM %s WHERE time = '%s' AND date = '%s'",
-			data.Sensor, fmt.Sprintf("%d:00", hour), date))
+	isExist, err := m.engine.Table(data.Sensor).Exist(&DBData{
+		Time: nTime,
+		Date: date,
+	})
 	if err != nil {
 		return err
 	}
-
-	if rows.Next() {
-		// Record in table already exists
-		rows.Close()
+	if isExist {
 		return nil
 	}
-	rows.Close()
 
-	_, err = m.Database.Exec(fmt.Sprintf(
-		"INSERT INTO %s(temp,humidity,pressure,time,date) VALUES ($1,$2,$3,$4,$5)", data.Sensor),
-		data.Temp, data.Humidity, data.Pressure, fmt.Sprintf("%d:00", hour), date)
+	mData := DBData{
+		Temp: data.Temp,
+		Hum:  data.Humidity,
+		Pres: data.Pressure,
+		Time: nTime,
+		Date: date,
+	}
+
+	_, err = m.engine.Table(data.Sensor).Insert(&mData)
 	if err != nil {
 		return err
 	}
@@ -92,26 +108,22 @@ func (m *MeteoDatabase) AddMeteoData(data *MeteoDBData) error {
 func (m *MeteoDatabase) MeteoDataByDate(sensor string, date string) ([]MeteoDBData, error) {
 	var data []MeteoDBData
 
-	rows, err := m.Database.Query(
-		fmt.Sprintf("SELECT temp,humidity,pressure,time,date FROM %s WHERE date = '%s'",
-			sensor, date))
+	rows, err := m.engine.Table(sensor).Rows(&DBData{Date: date})
 	if err != nil {
-		return data, err
+		return nil, err
 	}
 	defer rows.Close()
 
+	dbData := new(DBData)
 	for rows.Next() {
-		var mdata MeteoDBData
+		datum := MeteoDBData{}
+		rows.Scan(dbData)
 
-		err = rows.Scan(
-			&mdata.Temp, &mdata.Humidity, &mdata.Pressure, &mdata.Time,
-			&mdata.Date)
-		if err != nil {
-			return data, err
-		}
+		datum.Temp = dbData.Temp
+		datum.Humidity = dbData.Hum
+		datum.Pressure = dbData.Pres
 
-		mdata.Sensor = sensor
-		data = append(data, mdata)
+		data = append(data, datum)
 	}
 
 	return data, nil
@@ -119,7 +131,7 @@ func (m *MeteoDatabase) MeteoDataByDate(sensor string, date string) ([]MeteoDBDa
 
 // MeteoDataClear clear meteo values from sensor table
 func (m *MeteoDatabase) MeteoDataClear(sensor string) error {
-	_, err := m.Database.Exec(fmt.Sprintf("TRUNCATE %s", sensor))
+	_, err := m.engine.Table(sensor).Delete(&DBData{})
 	if err != nil {
 		return err
 	}
@@ -129,5 +141,6 @@ func (m *MeteoDatabase) MeteoDataClear(sensor string) error {
 
 // Unload close database
 func (m *MeteoDatabase) Close() {
-	m.Database.Close()
+	m.engine.Close()
+	m.locker.Unlock(utils.MeteoDBName)
 }

@@ -21,7 +21,7 @@ package utils
 const (
 	ConfigsPath        = "/etc/fc/futcamp.conf"
 	LogPath            = "/var/log/fc/"
-	StartupCfgPath     = "/Users/sergey/startup-config"
+	StartupCfgPath     = "/etc/fc/startup-config"
 )
 
 // Database names

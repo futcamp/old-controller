@@ -2,7 +2,7 @@
 /*
 /* Future Camp Project
 /*
-/* Copyright (C) 2018-2019 Sergey Denisov.
+/* Copyright (C) 2019 Sergey Denisov.
 /*
 /* Written by Sergey Denisov aka LittleBuster (DenisovS21@gmail.com)
 /* Github: https://github.com/LittleBuster
@@ -15,38 +15,34 @@
 /*
 /*******************************************************************/
 
-package configs
+package updater
 
-type MeteoDBCfg struct {
-	FileName string
+import (
+	"net/http"
+
+	"github.com/inconshreveable/go-update"
+)
+
+type Updater struct {
 }
 
-type TimersCfg struct {
-	MeteoSensorsDelay int
-	MeteoDisplayDelay int
-	MeteoDBDelay      int
+// NewUpdater make new struct
+func NewUpdater() *Updater {
+	return &Updater{}
 }
 
-type RCliCfg struct {
-	UserHash string
-}
+// Update update application
+func (u *Updater) Update(url string) error {
+	re, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	defer re.Body.Close()
 
-type Settings struct {
-	MeteoDB MeteoDBCfg
-	Timers  TimersCfg
-	RCli    RCliCfg
-}
+	err = update.Apply(re.Body, update.Options{})
+	if err != nil {
+		return err
+	}
 
-type DynamicConfigs struct {
-	set Settings
-}
-
-// NewDynamicConfigs make new struct
-func NewDynamicConfigs() *DynamicConfigs {
-	return &DynamicConfigs{}
-}
-
-// Settings get settings pointer
-func (d *DynamicConfigs) Settings() *Settings {
-	return &d.set
+	return nil
 }

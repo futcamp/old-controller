@@ -17,11 +17,13 @@ display ip house 127.0.0.1
 display sensors house room
 !
 !
-db add-base meteodb ip 127.0.0.1 port 3306 login serg password cisco base meteo
+db add-base meteodb /Users/sergey/meteo.db
 !
 !
 timer add-delay meteo-lcd 22
+!
 timer add-delay meteo-sensors 22
+!
 timer add-delay meteo-db 22
 !
 !

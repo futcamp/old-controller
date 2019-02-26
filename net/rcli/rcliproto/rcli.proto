@@ -7,6 +7,7 @@ service RemoteCli {
     rpc SendCmd(CmdRequest) returns (CmdResponse) {}
     rpc ComandsList(CmdListRequest) returns (CmdListResponse) {}
     rpc UpdateStartup(UpdateStartupRequest) returns (UpdateStartupResponse) {}
+    rpc UpdateApp(UpdateAppRequest) returns (UpdateAppResponse) {}
     rpc SendLinuxCmd(LinuxCmdRequest) returns (LinuxCmdResponse) {}
 }
 
@@ -42,6 +43,15 @@ message UpdateStartupRequest {
 }
 
 message UpdateStartupResponse {
+    bool Result = 1;
+}
+
+message UpdateAppRequest {
+    string LoginHash = 1;
+    string Path = 2;
+}
+
+message UpdateAppResponse {
     bool Result = 1;
 }
 

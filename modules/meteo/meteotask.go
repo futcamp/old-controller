@@ -100,8 +100,7 @@ func (m *MeteoTask) TaskHandler() {
 			hour := time.Now().Hour()
 
 			if hour != m.lastHour {
-				dbCfg := m.dynCfg.Settings().MeteoDB
-				err := m.meteoDB.Connect(dbCfg.IP, dbCfg.User, dbCfg.Passwd, dbCfg.Base)
+				err := m.meteoDB.Load(m.dynCfg.Settings().MeteoDB.FileName)
 				if err != nil {
 					logger.Errorf("Fail to load %s database", "meteo")
 					logger.Error(err.Error())
@@ -116,13 +115,13 @@ func (m *MeteoTask) TaskHandler() {
 						Temp:     mdata.Temp,
 						Humidity: mdata.Humidity,
 						Pressure: mdata.Pressure,
-						Altitude: mdata.Pressure,
 					}
+
 					err = m.meteoDB.AddMeteoData(data)
 					if err != nil {
 						logger.Errorf("Fail to add to database data from sensor %s",
 							sensor.Name)
-						logger.Error(sensor.Name, err.Error())
+						logger.Error(sensor.Name, " ", err.Error())
 					}
 				}
 

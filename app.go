@@ -81,6 +81,9 @@ func (a *Application) Start() {
 	}
 	logger.Infof("Configs %s was loaded", "main")
 
+	// Add lock for meteo database
+	a.locker.AddLock(utils.MeteoDBName)
+
 	// Load startup-configs from file and apply to application
 	err = a.startup.Load(utils.StartupCfgPath)
 	if err != nil {

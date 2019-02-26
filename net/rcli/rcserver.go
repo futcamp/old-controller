@@ -26,6 +26,7 @@ import (
 	"os/exec"
 
 	pb "github.com/futcamp/controller/net/rcli/rcliproto"
+	"github.com/futcamp/controller/updater"
 	"github.com/futcamp/controller/utils"
 	"github.com/futcamp/controller/utils/startup"
 
@@ -35,13 +36,15 @@ import (
 
 type RCliServer struct {
 	startup  *startup.Startup
+	updater  *updater.Updater
 	userHash string
 }
 
 // NewRCliServer make new struct
-func NewRCliServer(stp *startup.Startup) *RCliServer {
+func NewRCliServer(stp *startup.Startup, upd *updater.Updater) *RCliServer {
 	return &RCliServer{
 		startup: stp,
+		updater: upd,
 	}
 }
 
@@ -151,6 +154,25 @@ func (r *RCliServer) UpdateStartup(ctx context.Context, in *pb.UpdateStartupRequ
 	for _, cmd := range in.Cmds {
 		file.WriteString(cmd)
 		file.WriteString("\n")
+	}
+
+	resp.Result = true
+	return resp, nil
+}
+
+// UpdateApp update startup-configs
+func (r *RCliServer) UpdateApp(ctx context.Context, in *pb.UpdateAppRequest) (*pb.UpdateAppResponse, error) {
+	resp := &pb.UpdateAppResponse{}
+
+	if in.LoginHash != r.userHash {
+		resp.Result = false
+		return resp, nil
+	}
+
+	err := r.updater.Update(in.Path)
+	if err != nil {
+		resp.Result = false
+		return resp, nil
 	}
 
 	resp.Result = true

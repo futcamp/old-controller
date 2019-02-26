@@ -189,7 +189,7 @@ func (s *StartupMods) applyMeteoCfg(cmd string, dev string, args []string) error
 		}
 
 		sensor := s.meteo.Sensor(dev)
-		sensor.TempDelta = ch
+		sensor.Channel = ch
 		logger.Infof("Meteo set sensor channel \"%d\" for device \"%s\"", sensor.Channel, dev)
 		break
 
@@ -355,24 +355,15 @@ func (s *StartupMods) applyRCliCfg(cmd string, dev string, args []string) error 
 	return nil
 }
 
-// applyAirCtrlCfg apply commands for air control module
+// applyAirCtrlCfg apply commands for MeteoDB module
 func (s *StartupMods) applyDBCfg(cmd string, dev string, args []string) error {
 	if cmd == "add-base" {
 		switch dev {
 		case "meteodb":
-			if len(args) < 10 {
+			if len(args) < 1 {
 				return errors.New("wrong args count")
 			}
-
-			port, err := strconv.Atoi(args[3])
-			if err != nil {
-				return err
-			}
-			s.dynCfg.Settings().MeteoDB.IP = args[1]
-			s.dynCfg.Settings().MeteoDB.Port = port
-			s.dynCfg.Settings().MeteoDB.User = args[5]
-			s.dynCfg.Settings().MeteoDB.Passwd = args[7]
-			s.dynCfg.Settings().MeteoDB.Base = args[9]
+			s.dynCfg.Settings().MeteoDB.FileName = args[0]
 			break
 		}
 	} else {

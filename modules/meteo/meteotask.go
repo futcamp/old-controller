@@ -79,7 +79,8 @@ func (m *MeteoTask) TaskHandler() {
 			hour := time.Now().Hour()
 
 			if hour != m.lastHour {
-				err := m.meteoDB.Load(m.dynCfg.Settings().MeteoDB.FileName)
+				db := m.dynCfg.Settings().MeteoDB
+				err := m.meteoDB.Connect(db.IP, db.User, db.Passwd, db.Base)
 				if err != nil {
 					logger.Errorf("Fail to load %s database", "meteo")
 					logger.Error(err.Error())

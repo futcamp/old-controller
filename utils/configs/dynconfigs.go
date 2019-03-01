@@ -18,7 +18,11 @@
 package configs
 
 type MeteoDBCfg struct {
-	FileName string
+	IP     string
+	Port   int
+	User   string
+	Passwd string
+	Base   string
 }
 
 type TimersCfg struct {

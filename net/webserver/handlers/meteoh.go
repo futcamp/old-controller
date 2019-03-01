@@ -87,7 +87,8 @@ func (m *MeteoHandler) ProcessMeteoDBHandler(sensor string, date string, req *ht
 		return nil, errors.New("Bad request method")
 	}
 
-	err := m.meteoDB.Load(m.dynCfg.Settings().MeteoDB.FileName)
+	db := m.dynCfg.Settings().MeteoDB
+	err := m.meteoDB.Connect(db.IP, db.User, db.Passwd, db.Base)
 	if err != nil {
 		return nil, err
 	}
@@ -109,7 +110,8 @@ func (m *MeteoHandler) ProcessMeteoDBClearHandler(sensor string, req *http.Reque
 		return errors.New("Bad request method")
 	}
 
-	err := m.meteoDB.Load(m.dynCfg.Settings().MeteoDB.FileName)
+	db := m.dynCfg.Settings().MeteoDB
+	err := m.meteoDB.Connect(db.IP, db.User, db.Passwd, db.Base)
 	if err != nil {
 		return err
 	}

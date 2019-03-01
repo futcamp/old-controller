@@ -24,7 +24,7 @@ import (
 	"github.com/futcamp/controller/utils"
 
 	"github.com/go-xorm/xorm"
-	_ "github.com/mattn/go-sqlite3"
+	_ "github.com/lib/pq"
 )
 
 type MeteoDBData struct {
@@ -57,12 +57,13 @@ func NewMeteoDatabase(lck *utils.Locker) *MeteoDatabase {
 }
 
 // Load open database
-func (m *MeteoDatabase) Load(fileName string) error {
+func (m *MeteoDatabase) Connect(ip string, user string, passwd string, db string) error {
 	var err error
 
 	m.locker.Lock(utils.MeteoDBName)
 
-	m.engine, err = xorm.NewEngine("sqlite3", fileName)
+	m.engine, err = xorm.NewEngine("postgres", fmt.Sprintf("postgres://%s:%s@%s/%s",
+		user, passwd, ip, db))
 	if err != nil {
 		m.locker.Unlock(utils.MeteoDBName)
 		return err

@@ -97,7 +97,7 @@ func (m *MeteoHandler) ProcessMeteoDBHandler(sensor string, date string, req *ht
 	if err != nil {
 		return nil, err
 	}
-	netdata.SetRestResponse(data, "meteo", "meteo Station", sensors, req)
+	netdata.SetRestResponse(data, "meteo", "Meteo Station", sensors, req)
 
 	jData, _ := json.Marshal(data)
 	return jData, nil
@@ -121,4 +121,29 @@ func (m *MeteoHandler) ProcessMeteoDBClearHandler(sensor string, req *http.Reque
 	}
 
 	return nil
+}
+
+// ProcessMeteoSingleHandler display actual meteo data for single sensors
+func (m *MeteoHandler) ProcessMeteoSingleHandler(sensorName string, req *http.Request) ([]byte, error) {
+	data := &netdata.RestResponse{}
+
+	if req.Method != http.MethodGet {
+		return nil, errors.New("Bad request method")
+	}
+
+	sensor := m.meteo.Sensor(sensorName)
+	mdata := sensor.MeteoData()
+
+	s := DisplayedSensor{
+		Name:     sensor.Name,
+		Type:     sensor.Type,
+		Temp:     mdata.Temp,
+		Humidity: mdata.Humidity,
+		Pressure: mdata.Pressure,
+	}
+
+	netdata.SetRestResponse(data, "meteo", "Meteo Station", s, req)
+
+	jData, _ := json.Marshal(data)
+	return jData, nil
 }

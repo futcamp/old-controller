@@ -111,6 +111,18 @@ func (w *WebServer) MeteoHandler(writer http.ResponseWriter, req *http.Request) 
 	resp := NewResponse(&writer, configs.AppName)
 	args := strings.Split(req.RequestURI, "/")
 
+	// Get single sensor data
+	if len(args) == 5 && args[4] != "" {
+		data, err := w.meteoHdl.ProcessMeteoSingleHandler(args[4], req)
+		if err != nil {
+			logger.Error(err.Error())
+			resp.SendFail(err.Error())
+			return
+		}
+		resp.Send(string(data))
+		return
+	}
+
 	if len(args) == 6 && args[5] != "" {
 		// Clear all sensor meteo data
 		if args[5] == "clear" {

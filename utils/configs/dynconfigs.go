@@ -23,7 +23,6 @@ type MeteoDBCfg struct {
 
 type TimersCfg struct {
 	MeteoSensorsDelay int
-	MeteoDisplayDelay int
 	MeteoDBDelay      int
 }
 

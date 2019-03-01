@@ -30,8 +30,7 @@ const (
 )
 
 type ModCfg struct {
-	Meteo   bool
-	AirCtrl bool
+	Meteo bool
 }
 
 type ServerCfg struct {

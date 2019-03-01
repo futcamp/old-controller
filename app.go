@@ -95,8 +95,10 @@ func (a *Application) Start() {
 
 	// Start all application tasks
 	go a.logTask.Start()
-	go a.meteoTask.Start()
 	go a.monitorTask.Start()
+	if a.cfg.Settings().Modules.Meteo {
+		go a.meteoTask.Start()
+	}
 
 	// Start RemoteCLI server
 	go func() {

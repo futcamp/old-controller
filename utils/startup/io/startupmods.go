@@ -313,10 +313,19 @@ func (s *StartupMods) applyDBCfg(cmd string, dev string, args []string) error {
 	if cmd == "add-base" {
 		switch dev {
 		case "meteodb":
-			if len(args) < 1 {
+			if len(args) < 10 {
 				return errors.New("wrong args count")
 			}
-			s.dynCfg.Settings().MeteoDB.FileName = args[0]
+
+			port, err := strconv.Atoi(args[3])
+			if err != nil {
+				return err
+			}
+			s.dynCfg.Settings().MeteoDB.IP = args[1]
+			s.dynCfg.Settings().MeteoDB.Port = port
+			s.dynCfg.Settings().MeteoDB.User = args[5]
+			s.dynCfg.Settings().MeteoDB.Passwd = args[7]
+			s.dynCfg.Settings().MeteoDB.Base = args[9]
 			break
 		}
 	} else {

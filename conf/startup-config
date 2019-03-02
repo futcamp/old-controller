@@ -1,0 +1,40 @@
+!
+!
+meteo add-device room
+meteo ip room 127.0.0.1
+meteo type room dht22
+meteo channel room 0
+meteo temp-delta room -1
+!
+meteo add-device street
+meteo ip street 127.0.0.1
+meteo type street dht22
+meteo channel street 0
+!
+!
+display add-device house
+display ip house 127.0.0.1
+display sensors house room
+!
+!
+db add-base meteodb ip 127.0.0.1 port 3306 login serg password cisco base meteo
+!
+!
+timer add-delay monitor 10
+!
+timer add-delay meteo-sensors 30
+!
+timer add-delay meteo-db 60
+!
+!
+notify add-server telegram
+notify api-key telegram 123:123456
+notify chat-id telegram 123
+!
+!
+monitor add-monitor main
+monitor device main meteo room street
+monitor device main display house
+!
+!
+rcli add-user main login serg password cisco

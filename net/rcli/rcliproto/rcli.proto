@@ -1,0 +1,68 @@
+syntax = "proto3";
+
+package rcli;
+
+service RemoteCli {
+    rpc LoginCheck(LoginRequest) returns (LoginResponse) {}
+    rpc SendCmd(CmdRequest) returns (CmdResponse) {}
+    rpc ComandsList(CmdListRequest) returns (CmdListResponse) {}
+    rpc UpdateStartup(UpdateStartupRequest) returns (UpdateStartupResponse) {}
+    rpc UpdateApp(UpdateAppRequest) returns (UpdateAppResponse) {}
+    rpc SendLinuxCmd(LinuxCmdRequest) returns (LinuxCmdResponse) {}
+}
+
+message LoginRequest {
+    string LoginHash = 1;
+}
+
+message LoginResponse {
+    bool Result = 1;
+}
+
+message CmdRequest {
+    string LoginHash = 1;
+    string Command = 2;
+}
+
+message CmdResponse {
+    bool Result = 1;
+}
+
+message CmdListRequest {
+    string LoginHash = 1;
+}
+
+message CmdListResponse {
+    repeated string Cmds = 1;
+    bool Result = 2;
+}
+
+message UpdateStartupRequest {
+    string LoginHash = 1;
+    repeated string Cmds = 2;
+}
+
+message UpdateStartupResponse {
+    bool Result = 1;
+}
+
+message UpdateAppRequest {
+    string LoginHash = 1;
+    string Path = 2;
+}
+
+message UpdateAppResponse {
+    bool Result = 1;
+}
+
+message LinuxCmdRequest {
+    string LoginHash = 1;
+    string Command = 2;
+    string Args = 3;
+    string SubArgs = 4;
+}
+
+message LinuxCmdResponse {
+    string Output = 1;
+    bool Result = 2;
+}

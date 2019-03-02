@@ -105,8 +105,6 @@ func (a *Application) Start() {
 		logger.Infof("Starting RemoteCLI server at %s:%d...", a.cfg.Settings().RCliServer.IP,
 			a.cfg.Settings().RCliServer.Port)
 
-		a.rcli.SetHash(a.dynCfg.Settings().RCli.UserHash)
-
 		err = a.rcli.Start(a.cfg.Settings().RCliServer.IP, a.cfg.Settings().RCliServer.Port)
 		if err != nil {
 			logger.Error("Fail to start RemoteCLI server")

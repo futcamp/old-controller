@@ -220,6 +220,10 @@ func (s *StartupMods) applyTimerCfg(cmd string, dev string, args []string) error
 		case "meteo-db":
 			s.dynCfg.Settings().Timers.MeteoDBDelay = delay
 			break
+
+		case "monitor":
+			s.dynCfg.Settings().Timers.MonitorDelay = delay
+			break
 		}
 	} else {
 		return errors.New("command not found")
@@ -256,12 +260,10 @@ func (s *StartupMods) applyNotifyCfg(cmd string, dev string, args []string) erro
 
 // applyMonitorCfg apply commands for devices monitor
 func (s *StartupMods) applyMonitorCfg(cmd string, dev string, args []string) error {
-	devs := ""
-
 	switch cmd {
 	case "add-monitor":
 		s.devMonitor.SetName(dev)
-		logger.Infof("Monitor add new monitor \"%s\"", dev)
+		logger.Infof("monitor add new monitor \"%s\"", dev)
 		break
 
 	case "device":
@@ -271,14 +273,13 @@ func (s *StartupMods) applyMonitorCfg(cmd string, dev string, args []string) err
 				if i == 0 {
 					continue
 				}
-				devs += device + " "
 				sensor := s.meteo.Sensor(device)
 				s.devMonitor.AddDevice(sensor.Name, "meteo", sensor.IP)
+				logger.Infof("Monitor add new device from module \"%s\" : \"%s\" for monitor \"%s\"",
+					args[0], sensor.Name, dev)
 			}
 			break
 		}
-
-		logger.Infof("Monitor add new device from module \"%s\" : \"%s\" for monitor \"%s\"", args[0], devs, dev)
 		break
 	}
 

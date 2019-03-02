@@ -18,6 +18,7 @@
 package monitoring
 
 import (
+	"github.com/futcamp/controller/utils/configs"
 	"time"
 )
 
@@ -27,34 +28,39 @@ const (
 
 // meteoTask meteo task struct
 type MonitorTask struct {
-	Monitor         *DeviceMonitor
-	ReqTimer        *time.Timer
-	DisplaysCounter int
-	SensorsCounter  int
-	DatabaseCounter int
-	LastHour        int
+	monitor    *DeviceMonitor
+	dynCfg     *configs.DynamicConfigs
+	reqTimer   *time.Timer
+	lastHour   int
+	monCounter int
 }
 
 // NewMonitorTask make new struct
-func NewMonitorTask(monitor *DeviceMonitor) *MonitorTask {
+func NewMonitorTask(monitor *DeviceMonitor, dc *configs.DynamicConfigs) *MonitorTask {
 	return &MonitorTask{
-		Monitor: monitor,
+		monitor:    monitor,
+		dynCfg:     dc,
+		monCounter: 0,
 	}
 }
 
 // TaskHandler process timer loop
 func (m *MonitorTask) TaskHandler() {
 	for {
-		<-m.ReqTimer.C
+		<-m.reqTimer.C
+		m.monCounter++
 
-		m.Monitor.CheckDevices()
+		if m.monCounter >= m.dynCfg.Settings().Timers.MonitorDelay {
+			m.monCounter = 0
+			m.monitor.CheckDevices()
+		}
 
-		m.ReqTimer.Reset(taskDelay * time.Second)
+		m.reqTimer.Reset(taskDelay * time.Second)
 	}
 }
 
 // Start start new timer
 func (m *MonitorTask) Start() {
-	m.ReqTimer = time.NewTimer(taskDelay * time.Second)
+	m.reqTimer = time.NewTimer(taskDelay * time.Second)
 	m.TaskHandler()
 }

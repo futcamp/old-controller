@@ -137,5 +137,5 @@ func (d *DeviceMonitor) SendNotify(device *Device) {
 		device.Type, status)
 
 	logger.Infof(message)
-	d.notify.SendNotify("Monitor:", message)
+	d.notify.SendNotify("monitor:", message)
 }

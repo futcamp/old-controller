@@ -12,6 +12,12 @@ meteo type street dht22
 meteo channel street 0
 !
 !
+humctrl add-device cab529
+humctrl ip cab529 127.0.0.1
+humctrl sensor cab529 cab529
+humctrl threshold cab529 22
+!
+!
 display add-device house
 display ip house 127.0.0.1
 display sensors house room

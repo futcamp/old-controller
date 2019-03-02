@@ -40,17 +40,20 @@ type WebServer struct {
 	meteoHdl   *handlers.MeteoHandler
 	logHdl     *handlers.LogHandler
 	monitorHdl *handlers.MonitorHandler
+	humCtrlHdl *handlers.HumCtrlHandler
 }
 
 // NewWebServer make new struct
 func NewWebServer(cfg *configs.Configs, meteo *meteo.MeteoStation, mh *handlers.MeteoHandler,
-	lh *handlers.LogHandler, mnh *handlers.MonitorHandler) *WebServer {
+	lh *handlers.LogHandler, mnh *handlers.MonitorHandler,
+	hch *handlers.HumCtrlHandler) *WebServer {
 	return &WebServer{
 		cfg:        cfg,
 		meteo:      meteo,
 		meteoHdl:   mh,
 		logHdl:     lh,
 		monitorHdl: mnh,
+		humCtrlHdl:hch,
 	}
 }
 
@@ -63,6 +66,9 @@ func (w *WebServer) Start(ip string, port int) error {
 	mux.HandleFunc(fmt.Sprintf("/api/%s/monitoring/", configs.ApiVersion), w.MonitorHandler)
 	if w.cfg.Settings().Modules.Meteo {
 		mux.HandleFunc(fmt.Sprintf("/api/%s/meteo/", configs.ApiVersion), w.MeteoHandler)
+	}
+	if w.cfg.Settings().Modules.Humctrl {
+		mux.HandleFunc(fmt.Sprintf("/api/%s/humctrl/", configs.ApiVersion), w.HumCtrlHandler)
 	}
 
 	server := &http.Server{
@@ -170,4 +176,32 @@ func (w *WebServer) MonitorHandler(writer http.ResponseWriter, req *http.Request
 	}
 
 	resp.Send(string(devices))
+}
+
+// HumCtrlHandler hum control requests handler
+func (w *WebServer) HumCtrlHandler(writer http.ResponseWriter, req *http.Request) {
+	resp := NewResponse(&writer, configs.AppName)
+	args := strings.Split(req.RequestURI, "/")
+
+	// Get single sensor data
+	if len(args) == 5 && args[4] != "" {
+		data, err := w.humCtrlHdl.ProcessHumCtrlSingleHandler(args[4], req)
+		if err != nil {
+			logger.Error(err.Error())
+			resp.SendFail(err.Error())
+			return
+		}
+		resp.Send(string(data))
+		return
+	}
+
+	// Get all meteo sensors data
+	data, err := w.humCtrlHdl.ProcessHumCtrlAllHandler(req)
+	if err != nil {
+		logger.Error(err.Error())
+		resp.SendFail(err.Error())
+		return
+	}
+	resp.Send(string(data))
+	return
 }

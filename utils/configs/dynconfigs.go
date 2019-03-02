@@ -28,6 +28,7 @@ type MeteoDBCfg struct {
 type TimersCfg struct {
 	MeteoSensorsDelay int
 	MeteoDBDelay      int
+	MonitorDelay      int
 }
 
 type RCliCfg struct {

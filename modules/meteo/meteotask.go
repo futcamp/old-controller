@@ -35,19 +35,24 @@ type MeteoTask struct {
 	meteoDB         *MeteoDatabase
 	dynCfg          *configs.DynamicConfigs
 	reqTimer        *time.Timer
+	displays        *MeteoDisplays
 	sensorsCounter  int
 	databaseCounter int
+	displayCounter  int
 	lastHour        int
 }
 
 // NewMeteoTask make new struct
-func NewMeteoTask(meteo *MeteoStation, mdb *MeteoDatabase, dc *configs.DynamicConfigs) *MeteoTask {
+func NewMeteoTask(meteo *MeteoStation, mdb *MeteoDatabase, dc *configs.DynamicConfigs,
+	disp *MeteoDisplays) *MeteoTask {
 	return &MeteoTask{
 		meteo:           meteo,
 		meteoDB:         mdb,
 		dynCfg:          dc,
+		displays:        disp,
 		sensorsCounter:  0,
 		databaseCounter: 0,
+		displayCounter:  0,
 		lastHour:        -1,
 	}
 }
@@ -58,6 +63,7 @@ func (m *MeteoTask) TaskHandler() {
 		<-m.reqTimer.C
 		m.sensorsCounter++
 		m.databaseCounter++
+		m.displayCounter++
 
 		// Get actual data from controller
 		if m.sensorsCounter == m.dynCfg.Settings().Timers.MeteoSensorsDelay {
@@ -68,7 +74,41 @@ func (m *MeteoTask) TaskHandler() {
 			for _, sensor := range sensors {
 				err := sensor.SyncMeteoData()
 				if err != nil {
+					sensor.Errors++
+
+					if sensor.Errors == 1 {
+						logger.Errorf("Fail to read meteo data from sensor \"%s\"", sensor.Name)
+						logger.Error(err.Error())
+					}
+
+					if sensor.Errors > MaxReadDelay {
+						errData := MeteoData{
+							Temp:     SensorErrorValue,
+							Humidity: SensorErrorValue,
+							Pressure: SensorErrorValue,
+						}
+
+						sensor.SetMeteoData(&errData)
+						sensor.Errors = 0
+					}
 					continue
+				} else {
+					sensor.Errors = 0
+				}
+			}
+		}
+
+		// Display actual data on LCDs
+		if m.displayCounter == m.dynCfg.Settings().Timers.DisplayDelay {
+			m.displayCounter = 0
+			for _, display := range m.displays.Displays() {
+				for _, sensorName := range *display.Sensors() {
+					sensor := m.meteo.Sensor(sensorName)
+					data := sensor.MeteoData()
+					err := display.DisplayMeteo(sensorName, data.Temp, data.Humidity, data.Pressure)
+					if err != nil {
+						continue
+					}
 				}
 			}
 		}

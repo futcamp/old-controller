@@ -19,6 +19,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/futcamp/controller/utils/startup"
 
 	"github.com/futcamp/controller/modules/humctrl"
 	"github.com/futcamp/controller/modules/meteo"
@@ -30,7 +31,6 @@ import (
 	"github.com/futcamp/controller/updater"
 	"github.com/futcamp/controller/utils"
 	"github.com/futcamp/controller/utils/configs"
-	"github.com/futcamp/controller/utils/startup"
 	"github.com/futcamp/controller/utils/startup/io"
 
 	"go.uber.org/dig"
@@ -45,11 +45,12 @@ func main() {
 	container.Provide(handlers.NewLogHandler)
 	container.Provide(notifier.NewNotifier)
 	container.Provide(updater.NewUpdater)
+	container.Provide(startup.NewStartup)
 
 	container.Provide(meteo.NewMeteoStation)
 	container.Provide(meteo.NewMeteoTask)
 	container.Provide(meteo.NewMeteoDatabase)
-	container.Provide(startup.NewStartup)
+	container.Provide(meteo.NewMeteoDisplays)
 
 	container.Provide(humctrl.NewHumidityControl)
 	container.Provide(humctrl.NewHumControlTask)

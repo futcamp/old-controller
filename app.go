@@ -18,6 +18,7 @@
 package main
 
 import (
+	"github.com/futcamp/controller/modules/humctrl"
 	"github.com/futcamp/controller/modules/meteo"
 	"github.com/futcamp/controller/monitoring"
 	"github.com/futcamp/controller/net/rcli"
@@ -43,6 +44,7 @@ type Application struct {
 	startup     *startup.Startup
 	rcli        *rcli.RCliServer
 	dynCfg      *configs.DynamicConfigs
+	hctrlTask   *humctrl.HumControlTask
 }
 
 // NewApplication make new struct
@@ -50,7 +52,8 @@ func NewApplication(log *utils.Logger, cfg *configs.Configs,
 	meteo *meteo.MeteoStation, srv *webserver.WebServer, mTask *meteo.MeteoTask,
 	lTask *utils.LogTask, lck *utils.Locker, mdb *meteo.MeteoDatabase,
 	monitor *monitoring.DeviceMonitor, monitorTask *monitoring.MonitorTask,
-	stp *startup.Startup, rc *rcli.RCliServer, dc *configs.DynamicConfigs) *Application {
+	stp *startup.Startup, rc *rcli.RCliServer, dc *configs.DynamicConfigs,
+	hct *humctrl.HumControlTask) *Application {
 	return &Application{
 		log:         log,
 		cfg:         cfg,
@@ -65,6 +68,7 @@ func NewApplication(log *utils.Logger, cfg *configs.Configs,
 		startup:     stp,
 		rcli:        rc,
 		dynCfg:      dc,
+		hctrlTask:   hct,
 	}
 }
 
@@ -98,6 +102,9 @@ func (a *Application) Start() {
 	go a.monitorTask.Start()
 	if a.cfg.Settings().Modules.Meteo {
 		go a.meteoTask.Start()
+	}
+	if a.cfg.Settings().Modules.Humctrl {
+		go a.hctrlTask.Start()
 	}
 
 	// Start RemoteCLI server

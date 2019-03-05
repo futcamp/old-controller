@@ -20,6 +20,7 @@ package main
 import (
 	"fmt"
 
+	"github.com/futcamp/controller/modules/humctrl"
 	"github.com/futcamp/controller/modules/meteo"
 	"github.com/futcamp/controller/monitoring"
 	"github.com/futcamp/controller/net/rcli"
@@ -49,6 +50,10 @@ func main() {
 	container.Provide(meteo.NewMeteoTask)
 	container.Provide(meteo.NewMeteoDatabase)
 	container.Provide(startup.NewStartup)
+
+	container.Provide(humctrl.NewHumidityControl)
+	container.Provide(humctrl.NewHumControlTask)
+	container.Provide(handlers.NewHumCtrlHandler)
 
 	container.Provide(handlers.NewMeteoHandler)
 	container.Provide(monitoring.NewDeviceMonitor)

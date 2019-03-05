@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/futcamp/controller/modules/humctrl"
 	"github.com/futcamp/controller/modules/meteo"
 	"github.com/futcamp/controller/monitoring"
 	"github.com/futcamp/controller/notifier"
@@ -39,12 +40,14 @@ type StartupMods struct {
 	dynCfg     *configs.DynamicConfigs
 	notify     *notifier.Notifier
 	devMonitor *monitoring.DeviceMonitor
+	humCtrl    *humctrl.HumControl
 }
 
 // NewStartupMods make new struct
 func NewStartupMods(io *StartupIO, dc *configs.DynamicConfigs,
 	meteo *meteo.MeteoStation, ntf *notifier.Notifier,
-	mon *monitoring.DeviceMonitor, cfg *configs.Configs) *StartupMods {
+	mon *monitoring.DeviceMonitor, cfg *configs.Configs,
+	hctrl *humctrl.HumControl) *StartupMods {
 	return &StartupMods{
 		io:         io,
 		dynCfg:     dc,
@@ -52,6 +55,7 @@ func NewStartupMods(io *StartupIO, dc *configs.DynamicConfigs,
 		notify:     ntf,
 		devMonitor: mon,
 		cfg:        cfg,
+		humCtrl:    hctrl,
 	}
 }
 
@@ -99,6 +103,12 @@ func (s *StartupMods) DeleteModCommand(fileName string, module string, cmd strin
 			}
 			break
 
+		case "humctrl":
+			if s.cfg.Settings().Modules.Humctrl {
+				s.humCtrl.DeleteModule(dev)
+			}
+			break
+
 		case "monitor":
 			s.devMonitor.DeleteDevice(dev)
 			break
@@ -132,6 +142,12 @@ func (s *StartupMods) applyConfigs(module string, cmd string, dev string, args [
 	case "meteo":
 		if s.cfg.Settings().Modules.Meteo {
 			s.applyMeteoCfg(cmd, dev, args)
+		}
+		break
+
+	case "humctrl":
+		if s.cfg.Settings().Modules.Humctrl {
+			s.applyHumCtrlCfg(cmd, dev, args)
 		}
 		break
 
@@ -204,7 +220,46 @@ func (s *StartupMods) applyMeteoCfg(cmd string, dev string, args []string) error
 	return nil
 }
 
-// applyAirCtrlCfg apply commands for air control module
+// applyHumCtrlCfg apply commands for humctrl module
+func (s *StartupMods) applyHumCtrlCfg(cmd string, dev string, args []string) error {
+	switch cmd {
+	case "add-device":
+		mod := s.humCtrl.NewModule(dev, "", "", false)
+		s.humCtrl.AddModule(dev, mod)
+		logger.Infof("HumControl add new device \"%s\"", dev)
+		break
+
+	case "ip":
+		mod := s.humCtrl.Module(dev)
+		mod.IP = args[0]
+		logger.Infof("HumControl set ip address \"%s\" for device \"%s\"", mod.IP, dev)
+		break
+
+	case "sensor":
+		mod := s.humCtrl.Module(dev)
+		mod.Sensor = args[0]
+		logger.Infof("HumControl set sensor \"%s\" for device \"%s\"", mod.Sensor, dev)
+		break
+
+	case "threshold":
+		threshold, err := strconv.Atoi(args[0])
+		if err != nil {
+			logger.Infof("HumControl fail to convert threshold value for device \"%s\"", dev)
+			break
+		}
+
+		mod := s.humCtrl.Module(dev)
+		data := mod.ServerData()
+		mod.SetServerData(data.Status, threshold, data.Hum)
+
+		logger.Infof("HumControl set threshold \"%d\" for device \"%s\"", threshold, dev)
+		break
+	}
+
+	return nil
+}
+
+// applyTimerCfg apply commands for timers
 func (s *StartupMods) applyTimerCfg(cmd string, dev string, args []string) error {
 	delay, err := strconv.Atoi(args[0])
 	if err != nil {

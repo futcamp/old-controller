@@ -2,7 +2,7 @@
 /*
 /* Future Camp Project
 /*
-/* Copyright (C) 2018-2019 Sergey Denisov.
+/* Copyright (C) 2019 Sergey Denisov.
 /*
 /* Written by Sergey Denisov aka LittleBuster (DenisovS21@gmail.com)
 /* Github: https://github.com/LittleBuster
@@ -15,44 +15,39 @@
 /*
 /*******************************************************************/
 
-package meteo
+package humctrl
 
 import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"strings"
 )
 
 // CtrlMeteoData controller meteo data
-type CtrlMeteoData struct {
-	Temp     int `json:"temp"`
-	Humidity int `json:"humidity"`
-	Pressure int `json:"pressure"`
+type CtrlHumctrlData struct {
+	Humidifier bool `json:"humidifier"`
+	Switch     bool `json:"switch"`
+	Plus       bool `json:"plus"`
+	Minus      bool `json:"minus"`
 }
 
 type WiFiController struct {
-	SensorType string
-	IP         string
-	Channel    int
+	ip string
 }
 
 // NewWiFiController make new struct
-func NewWiFiController(sType string, ip string, ch int) *WiFiController {
+func NewWiFiController(ip string) *WiFiController {
 	return &WiFiController{
-		SensorType: sType,
-		IP:         ip,
-		Channel:    ch,
+		ip: ip,
 	}
 }
 
-// SyncMeteoData get actual meteo data from controller
-func (w *WiFiController) SyncMeteoData() (CtrlMeteoData, error) {
-	var data CtrlMeteoData
+// SyncData get actual data from controller and send cur states
+func (w *WiFiController) SyncData(status bool, thresh int, hum int) (CtrlHumctrlData, error) {
+	var data CtrlHumctrlData
 
-	res, err := http.Get(fmt.Sprintf("http://%s/meteo?chan=%d&type=%s",
-		w.IP, w.Channel, strings.ToUpper(w.SensorType)))
+	res, err := http.Get(fmt.Sprintf("http://%s/humctrl?hum=%d&thresh=%d&status=%t", w.ip, hum, thresh, status))
 	if err != nil {
 		return data, err
 	}

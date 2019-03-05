@@ -32,6 +32,8 @@ timer add-delay meteo-sensors 30
 !
 timer add-delay meteo-db 60
 !
+timer add-delay display 20
+!
 !
 notify add-server telegram
 notify api-key telegram 123:123456

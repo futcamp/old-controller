@@ -70,3 +70,22 @@ func (w *WiFiController) SyncMeteoData() (CtrlMeteoData, error) {
 
 	return data, nil
 }
+
+// DisplayMeteoData get actual meteo data from controller
+func (w *WiFiController) DisplayMeteoData(sensor string, data *CtrlMeteoData) error {
+	request := fmt.Sprintf("http://%s/display?sensor=%s&temp=%d&hum=%d&pres=%d",
+		w.IP, sensor, data.Temp, data.Humidity, data.Pressure)
+
+	res, err := http.Get(request)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+
+	_, err = ioutil.ReadAll(res.Body)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

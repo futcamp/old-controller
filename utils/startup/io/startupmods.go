@@ -41,13 +41,14 @@ type StartupMods struct {
 	notify     *notifier.Notifier
 	devMonitor *monitoring.DeviceMonitor
 	humCtrl    *humctrl.HumControl
+	meteoLCD *meteo.MeteoDisplays
 }
 
 // NewStartupMods make new struct
 func NewStartupMods(io *StartupIO, dc *configs.DynamicConfigs,
 	meteo *meteo.MeteoStation, ntf *notifier.Notifier,
 	mon *monitoring.DeviceMonitor, cfg *configs.Configs,
-	hctrl *humctrl.HumControl) *StartupMods {
+	hctrl *humctrl.HumControl, mlcd *meteo.MeteoDisplays) *StartupMods {
 	return &StartupMods{
 		io:         io,
 		dynCfg:     dc,
@@ -56,6 +57,7 @@ func NewStartupMods(io *StartupIO, dc *configs.DynamicConfigs,
 		devMonitor: mon,
 		cfg:        cfg,
 		humCtrl:    hctrl,
+		meteoLCD: mlcd,
 	}
 }
 
@@ -107,6 +109,10 @@ func (s *StartupMods) DeleteModCommand(fileName string, module string, cmd strin
 			if s.cfg.Settings().Modules.Humctrl {
 				s.humCtrl.DeleteModule(dev)
 			}
+			break
+
+		case "display":
+			s.meteoLCD.DeleteDisplay(dev)
 			break
 
 		case "monitor":
@@ -167,10 +173,42 @@ func (s *StartupMods) applyConfigs(module string, cmd string, dev string, args [
 		s.applyMonitorCfg(cmd, dev, args)
 		break
 
+	case "display":
+		s.applyMeteoLCDCfg(cmd, dev, args)
+		break
+
 	case "rcli":
 		s.applyRCliCfg(cmd, dev, args)
 		break
 	}
+}
+
+// applyMeteoLCDCfg apply commands for meteo displays
+func (s *StartupMods) applyMeteoLCDCfg(cmd string, dev string, args []string) error {
+	switch cmd {
+	case "add-device":
+		lcd := meteo.NewMeteoDisplay(dev, "")
+		s.meteoLCD.AddDisplay(dev, lcd)
+		logger.Infof("Display add new device \"%s\"", dev)
+		break
+
+	case "ip":
+		lcd := s.meteoLCD.Display(dev)
+		lcd.IP = args[0]
+		logger.Infof("Display set ip address \"%s\" for device \"%s\"", lcd.IP, dev)
+		break
+
+	case "sensors":
+		lcd := s.meteoLCD.Display(dev)
+
+		for _, sensor := range args {
+			lcd.AddDisplayingSensor(sensor)
+			logger.Infof("Display add displaying sensor \"%s\" for device \"%s\"", sensor, dev)
+		}
+		break
+	}
+
+	return nil
 }
 
 // applyMeteoCfg apply commands for meteo module
@@ -276,6 +314,10 @@ func (s *StartupMods) applyTimerCfg(cmd string, dev string, args []string) error
 			s.dynCfg.Settings().Timers.MeteoDBDelay = delay
 			break
 
+		case "display":
+			s.dynCfg.Settings().Timers.DisplayDelay = delay
+			break
+
 		case "monitor":
 			s.dynCfg.Settings().Timers.MonitorDelay = delay
 			break
@@ -315,6 +357,8 @@ func (s *StartupMods) applyNotifyCfg(cmd string, dev string, args []string) erro
 
 // applyMonitorCfg apply commands for devices monitor
 func (s *StartupMods) applyMonitorCfg(cmd string, dev string, args []string) error {
+
+
 	switch cmd {
 	case "add-monitor":
 		s.devMonitor.SetName(dev)
@@ -330,8 +374,20 @@ func (s *StartupMods) applyMonitorCfg(cmd string, dev string, args []string) err
 				}
 				sensor := s.meteo.Sensor(device)
 				s.devMonitor.AddDevice(sensor.Name, "meteo", sensor.IP)
-				logger.Infof("Monitor add new device from module \"%s\" : \"%s\" for monitor \"%s\"",
+				logger.Infof("Monitor add new device from module \"%s\" sensor \"%s\" for monitor \"%s\"",
 					args[0], sensor.Name, dev)
+			}
+			break
+
+		case "display":
+			for i, device := range args {
+				if i == 0 {
+					continue
+				}
+				lcd := s.meteoLCD.Display(device)
+				s.devMonitor.AddDevice(lcd.Name, "display", lcd.IP)
+				logger.Infof("Monitor add new device from module \"%s\" display \"%s\" for monitor \"%s\"",
+					args[0], lcd.Name, dev)
 			}
 			break
 		}

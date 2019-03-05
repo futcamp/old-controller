@@ -21,6 +21,11 @@ import (
 	"sync"
 )
 
+const (
+	MaxReadDelay = 10
+	SensorErrorValue = -255
+)
+
 type MeteoData struct {
 	Temp     int
 	Humidity int
@@ -33,6 +38,7 @@ type MeteoSensor struct {
 	IP        string
 	Channel   int
 	TempDelta int
+	Errors    int
 	Mtx       sync.Mutex
 	Data      MeteoData
 }

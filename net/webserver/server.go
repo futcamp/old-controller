@@ -53,7 +53,7 @@ func NewWebServer(cfg *configs.Configs, meteo *meteo.MeteoStation, mh *handlers.
 		meteoHdl:   mh,
 		logHdl:     lh,
 		monitorHdl: mnh,
-		humCtrlHdl:hch,
+		humCtrlHdl: hch,
 	}
 }
 
@@ -180,8 +180,72 @@ func (w *WebServer) MonitorHandler(writer http.ResponseWriter, req *http.Request
 
 // HumCtrlHandler hum control requests handler
 func (w *WebServer) HumCtrlHandler(writer http.ResponseWriter, req *http.Request) {
+	var stat bool
 	resp := NewResponse(&writer, configs.AppName)
 	args := strings.Split(req.RequestURI, "/")
+
+	// Change status
+	if len(args) == 7 && args[5] == "status" && args[6] != "" {
+		if req.Method == "PUT" {
+			if args[6] == "on" {
+				stat = true
+			} else {
+				stat = false
+			}
+
+			data, err := w.humCtrlHdl.ProcessHumCtrlStatus(args[4], stat, req)
+			if err != nil {
+				logger.Error(err.Error())
+				resp.SendFail(err.Error())
+				return
+			}
+			resp.Send(string(data))
+			return
+		} else {
+			resp.SendFail("Bad request")
+			return
+		}
+	}
+
+	// Change threshold
+	if len(args) == 7 && args[5] == "threshold" && args[6] != "" {
+		if req.Method == "PUT" {
+			if args[5] == "threshold" {
+				switch args[6] {
+				case "plus":
+					data, err := w.humCtrlHdl.ProcessHumCtrlThreshold(args[4], true, req)
+					if err != nil {
+						logger.Error(err.Error())
+						resp.SendFail(err.Error())
+						return
+					}
+					resp.Send(string(data))
+					return
+
+				case "minus":
+					data, err := w.humCtrlHdl.ProcessHumCtrlThreshold(args[4], false, req)
+					if err != nil {
+						logger.Error(err.Error())
+						resp.SendFail(err.Error())
+						return
+					}
+					resp.Send(string(data))
+					break
+
+				default:
+					resp.SendFail("Bad request")
+					break
+				}
+				return
+			} else {
+				resp.SendFail("Bad request")
+				return
+			}
+		} else {
+			resp.SendFail("Bad request method")
+			return
+		}
+	}
 
 	// Get single sensor data
 	if len(args) == 5 && args[4] != "" {

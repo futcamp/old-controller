@@ -41,7 +41,7 @@ type StartupMods struct {
 	notify     *notifier.Notifier
 	devMonitor *monitoring.DeviceMonitor
 	humCtrl    *humctrl.HumControl
-	meteoLCD *meteo.MeteoDisplays
+	meteoLCD   *meteo.MeteoDisplays
 }
 
 // NewStartupMods make new struct
@@ -57,7 +57,7 @@ func NewStartupMods(io *StartupIO, dc *configs.DynamicConfigs,
 		devMonitor: mon,
 		cfg:        cfg,
 		humCtrl:    hctrl,
-		meteoLCD: mlcd,
+		meteoLCD:   mlcd,
 	}
 }
 
@@ -279,6 +279,16 @@ func (s *StartupMods) applyHumCtrlCfg(cmd string, dev string, args []string) err
 		logger.Infof("HumControl set sensor \"%s\" for device \"%s\"", mod.Sensor, dev)
 		break
 
+	case "status":
+		mod := s.humCtrl.Module(dev)
+		if args[0] == "on" {
+			mod.Data.SetStatus(true)
+		} else {
+			mod.Data.SetStatus(false)
+		}
+		logger.Infof("HumControl set status \"%s\" for device \"%s\"", args[0], dev)
+		break
+
 	case "threshold":
 		threshold, err := strconv.Atoi(args[0])
 		if err != nil {
@@ -287,9 +297,7 @@ func (s *StartupMods) applyHumCtrlCfg(cmd string, dev string, args []string) err
 		}
 
 		mod := s.humCtrl.Module(dev)
-		data := mod.ServerData()
-		mod.SetServerData(data.Status, threshold, data.Hum)
-
+		mod.Data.SetThreshold(threshold)
 		logger.Infof("HumControl set threshold \"%d\" for device \"%s\"", threshold, dev)
 		break
 	}
@@ -358,7 +366,6 @@ func (s *StartupMods) applyNotifyCfg(cmd string, dev string, args []string) erro
 // applyMonitorCfg apply commands for devices monitor
 func (s *StartupMods) applyMonitorCfg(cmd string, dev string, args []string) error {
 
-
 	switch cmd {
 	case "add-monitor":
 		s.devMonitor.SetName(dev)
@@ -375,6 +382,18 @@ func (s *StartupMods) applyMonitorCfg(cmd string, dev string, args []string) err
 				sensor := s.meteo.Sensor(device)
 				s.devMonitor.AddDevice(sensor.Name, "meteo", sensor.IP)
 				logger.Infof("Monitor add new device from module \"%s\" sensor \"%s\" for monitor \"%s\"",
+					args[0], sensor.Name, dev)
+			}
+			break
+
+		case "humctrl":
+			for i, device := range args {
+				if i == 0 {
+					continue
+				}
+				sensor := s.humCtrl.Module(device)
+				s.devMonitor.AddDevice(sensor.Name, "humctrl", sensor.IP)
+				logger.Infof("Monitor add new device from module \"%s\" module \"%s\" for monitor \"%s\"",
 					args[0], sensor.Name, dev)
 			}
 			break
@@ -433,6 +452,7 @@ func (s *StartupMods) applyDBCfg(cmd string, dev string, args []string) error {
 			if err != nil {
 				return err
 			}
+
 			s.dynCfg.Settings().MeteoDB.IP = args[1]
 			s.dynCfg.Settings().MeteoDB.Port = port
 			s.dynCfg.Settings().MeteoDB.User = args[5]

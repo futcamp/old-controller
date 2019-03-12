@@ -26,10 +26,7 @@ import (
 
 // CtrlMeteoData controller meteo data
 type CtrlHumctrlData struct {
-	Humidifier bool `json:"humidifier"`
-	Switch     bool `json:"switch"`
-	Plus       bool `json:"plus"`
-	Minus      bool `json:"minus"`
+	Status bool `json:"status"`
 }
 
 type WiFiController struct {
@@ -44,10 +41,10 @@ func NewWiFiController(ip string) *WiFiController {
 }
 
 // SyncData get actual data from controller and send cur states
-func (w *WiFiController) SyncData(status bool, thresh int, hum int) (CtrlHumctrlData, error) {
+func (w *WiFiController) SyncData(status bool, heater bool) (CtrlHumctrlData, error) {
 	var data CtrlHumctrlData
 
-	res, err := http.Get(fmt.Sprintf("http://%s/humctrl?hum=%d&thresh=%d&status=%t", w.ip, hum, thresh, status))
+	res, err := http.Get(fmt.Sprintf("http://%s/humctrl?status=%t&humidifier=%t", w.ip, status, heater))
 	if err != nil {
 		return data, err
 	}

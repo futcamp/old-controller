@@ -16,6 +16,7 @@ humctrl add-device cab529
 humctrl ip cab529 127.0.0.1
 humctrl sensor cab529 cab529
 humctrl threshold cab529 22
+humctrl status cab529 on
 !
 !
 display add-device house
@@ -43,6 +44,7 @@ notify chat-id telegram 123
 monitor add-monitor main
 monitor device main meteo room street
 monitor device main display house
+monitor device main humctrl cab529
 !
 !
 rcli add-user main login serg password cisco

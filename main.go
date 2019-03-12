@@ -19,6 +19,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/futcamp/controller/utils/configs/cfgtask"
 	"github.com/futcamp/controller/utils/startup"
 
 	"github.com/futcamp/controller/modules/humctrl"
@@ -63,6 +64,7 @@ func main() {
 
 	container.Provide(configs.NewConfigs)
 	container.Provide(configs.NewDynamicConfigs)
+	container.Provide(cfgtask.NewDynConfigsTask)
 	container.Provide(io.NewStartupIO)
 	container.Provide(io.NewStartupMods)
 

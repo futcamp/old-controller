@@ -25,6 +25,7 @@ import (
 	"github.com/futcamp/controller/net/webserver"
 	"github.com/futcamp/controller/utils"
 	"github.com/futcamp/controller/utils/configs"
+	"github.com/futcamp/controller/utils/configs/cfgtask"
 	"github.com/futcamp/controller/utils/startup"
 
 	"github.com/google/logger"
@@ -45,6 +46,7 @@ type Application struct {
 	rcli        *rcli.RCliServer
 	dynCfg      *configs.DynamicConfigs
 	hctrlTask   *humctrl.HumControlTask
+	dynCfgTask  *cfgtask.DynConfigsTask
 }
 
 // NewApplication make new struct
@@ -53,7 +55,7 @@ func NewApplication(log *utils.Logger, cfg *configs.Configs,
 	lTask *utils.LogTask, lck *utils.Locker, mdb *meteo.MeteoDatabase,
 	monitor *monitoring.DeviceMonitor, monitorTask *monitoring.MonitorTask,
 	stp *startup.Startup, rc *rcli.RCliServer, dc *configs.DynamicConfigs,
-	hct *humctrl.HumControlTask) *Application {
+	hct *humctrl.HumControlTask, dct *cfgtask.DynConfigsTask) *Application {
 	return &Application{
 		log:         log,
 		cfg:         cfg,
@@ -69,6 +71,7 @@ func NewApplication(log *utils.Logger, cfg *configs.Configs,
 		rcli:        rc,
 		dynCfg:      dc,
 		hctrlTask:   hct,
+		dynCfgTask:  dct,
 	}
 }
 
@@ -100,6 +103,7 @@ func (a *Application) Start() {
 	// Start all application tasks
 	go a.logTask.Start()
 	go a.monitorTask.Start()
+	go a.dynCfgTask.Start()
 	if a.cfg.Settings().Modules.Meteo {
 		go a.meteoTask.Start()
 	}

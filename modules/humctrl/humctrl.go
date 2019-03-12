@@ -18,142 +18,131 @@
 package humctrl
 
 import (
+	"fmt"
 	"sync"
+
+	"github.com/futcamp/controller/utils/configs"
 )
-
-type HumCtrlModuleData struct {
-	Humidifier bool
-}
-
-type HumCtrlServerData struct {
-	Status    bool
-	Threshold int
-	Hum       int
-}
-
-type Module struct {
-	Name    string
-	IP      string
-	Sensor  string
-	Error   bool
-	ModData HumCtrlModuleData
-	SrvData HumCtrlServerData
-	ModMtx  sync.Mutex
-	SrvMtx  sync.Mutex
-}
 
 type HumControl struct {
 	modules map[string]*Module
+	dynCfg  *configs.DynamicConfigs
 }
 
-// SetServerData set new server data
-func (m *Module) SetServerData(status bool, thresh int, hum int) {
-	m.SrvMtx.Lock()
-	m.SrvData.Status = status
-	m.SrvData.Threshold = thresh
-	m.SrvData.Hum = hum
-	m.SrvMtx.Unlock()
+type ControlData struct {
+	threshold int
+	status    bool
+	mtxThresh sync.Mutex
+	mtxStatus sync.Mutex
 }
 
-// ServerData get current server data
-func (m *Module) ServerData() HumCtrlServerData {
-	var data HumCtrlServerData
-
-	m.SrvMtx.Lock()
-	data.Threshold = m.SrvData.Threshold
-	data.Status = m.SrvData.Status
-	data.Hum = m.SrvData.Hum
-	m.SrvMtx.Unlock()
-
-	return data
+type Module struct {
+	Name       string
+	IP         string
+	Sensor     string
+	Humidity   int
+	Humidifier bool
+	Data       ControlData
+	Error      bool
+	humCtrl    *HumControl
 }
 
-// SetModuleData set new module data
-func (m *Module) SetModuleData(hum bool) {
-	m.ModMtx.Lock()
-	m.ModData.Humidifier = hum
-	m.ModMtx.Unlock()
+// SetThreshold set new threshold value
+func (c *ControlData) SetThreshold(thresh int) {
+	c.mtxThresh.Lock()
+	c.threshold = thresh
+	c.mtxThresh.Unlock()
 }
 
-// ServerData get current module data
-func (m *Module) ModuleData() HumCtrlModuleData {
-	var data HumCtrlModuleData
+// Threshold get threshold value
+func (c *ControlData) Threshold() int {
+	var thresh int
 
-	m.ModMtx.Lock()
-	data.Humidifier = m.ModData.Humidifier
-	m.ModMtx.Unlock()
+	c.mtxThresh.Lock()
+	thresh = c.threshold
+	c.mtxThresh.Unlock()
 
-	return data
+	return thresh
+}
+
+// SetStatus set new status state
+func (c *ControlData) SetStatus(status bool) {
+	c.mtxThresh.Lock()
+	c.status = status
+	c.mtxThresh.Unlock()
+}
+
+// Status get status state
+func (c *ControlData) Status() bool {
+	var status bool
+
+	c.mtxThresh.Lock()
+	status = c.status
+	c.mtxThresh.Unlock()
+
+	return status
+}
+
+// NewModule make new humidity control module
+func (h *HumControl) NewModule(name string, ip string, sensor string, err bool) *Module {
+	return &Module{
+		Name:    name,
+		IP:      ip,
+		Sensor:  sensor,
+		Error:   err,
+		humCtrl: h,
+	}
 }
 
 // SyncData get data from controller
-func (s *Module) SyncData() error {
+func (m *Module) SyncData() error {
 	var status bool
-	var newStatus bool
-	var newThreshold int
-	var dataChngd bool
+	var thresh int
+	var stat string
 
-	sData := s.ServerData()
-	newStatus = sData.Status
-	newThreshold = sData.Threshold
+	status = m.Data.Status()
+	thresh = m.Data.Threshold()
 
 	// Control logic
-	if sData.Status {
-		if sData.Hum < (sData.Threshold - 1) {
-			status = true
+	if status {
+		if m.Humidity < (thresh - 1) {
+			m.Humidifier = true
 		}
-		if sData.Hum > (sData.Threshold + 1) {
-			status = false
+		if m.Humidity > (thresh + 1) {
+			m.Humidifier = false
 		}
 	} else {
-		status = false
+		m.Humidifier = false
 	}
 
 	// Send current states
-	ctrl := NewWiFiController(s.IP)
-	data, err := ctrl.SyncData(status, sData.Threshold, sData.Hum)
+	ctrl := NewWiFiController(m.IP)
+	data, err := ctrl.SyncData(status, m.Humidifier)
 	if err != nil {
 		return err
 	}
 
-	if data.Switch {
-		newStatus = !sData.Status
-		dataChngd = true
-	}
-	if data.Plus {
-		newThreshold = sData.Threshold + 1
-		dataChngd = true
-	}
-	if data.Minus {
-		newThreshold = sData.Threshold - 1
-		dataChngd = true
-	}
-
-	s.SetModuleData(data.Humidifier)
-
-	if dataChngd {
-		s.SetServerData(newStatus, newThreshold, sData.Hum)
-		// save configs
+	// SAve new data
+	if data.Status != status {
+		m.Data.SetStatus(data.Status)
+		if data.Status {
+			stat = "on"
+		} else {
+			stat = "off"
+		}
+		m.humCtrl.dynCfg.AddCommand(fmt.Sprintf("humctrl status %s %s", m.Name, stat))
+		m.humCtrl.dynCfg.SaveConfigs()
 	}
 
 	return nil
 }
 
 // NewHumidityControl make new struct
-func NewHumidityControl() *HumControl {
+func NewHumidityControl(dc *configs.DynamicConfigs) *HumControl {
 	mods := make(map[string]*Module)
 	return &HumControl{
 		modules: mods,
-	}
-}
-
-// NewModule make new humidity control module
-func (h *HumControl) NewModule(name string, ip string, sensor string, err bool) *Module {
-	return &Module{
-		Name:   name,
-		IP:     ip,
-		Sensor: sensor,
-		Error:  err,
+		dynCfg:  dc,
 	}
 }
 

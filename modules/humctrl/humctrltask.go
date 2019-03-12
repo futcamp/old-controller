@@ -26,7 +26,7 @@ import (
 )
 
 const (
-	taskDelay = 200
+	taskDelay = 1
 )
 
 // HumControlTask humidity control task struct
@@ -49,11 +49,9 @@ func (h *HumControlTask) TaskHandler() {
 	for {
 		<-h.reqTimer.C
 
-		// Update current temperatures
+		// Update current humidity
 		for _, module := range h.humCtrl.AllModules() {
-			data := module.ServerData()
-			temp := h.meteo.Sensor(module.Sensor).MeteoData().Temp
-			module.SetServerData(data.Status, data.Threshold, temp)
+			module.Humidity = h.meteo.Sensor(module.Sensor).MeteoData().Humidity
 		}
 
 		// Sync data with remote module
@@ -73,12 +71,12 @@ func (h *HumControlTask) TaskHandler() {
 			}
 		}
 
-		h.reqTimer.Reset(taskDelay * time.Millisecond)
+		h.reqTimer.Reset(taskDelay * time.Second)
 	}
 }
 
 // Start start new timer
 func (h *HumControlTask) Start() {
-	h.reqTimer = time.NewTimer(taskDelay * time.Millisecond)
+	h.reqTimer = time.NewTimer(taskDelay * time.Second)
 	h.TaskHandler()
 }

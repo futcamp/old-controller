@@ -180,27 +180,47 @@ func (w *WebServer) MonitorHandler(writer http.ResponseWriter, req *http.Request
 
 // HumCtrlHandler hum control requests handler
 func (w *WebServer) HumCtrlHandler(writer http.ResponseWriter, req *http.Request) {
-	var stat bool
 	resp := NewResponse(&writer, configs.AppName)
 	args := strings.Split(req.RequestURI, "/")
 
 	// Change status
 	if len(args) == 7 && args[5] == "status" && args[6] != "" {
 		if req.Method == "PUT" {
-			if args[6] == "on" {
-				stat = true
-			} else {
-				stat = false
-			}
+			switch args[6] {
+			case "on":
+				data, err := w.humCtrlHdl.ProcessHumCtrlStatus(args[4], true, req)
+				if err != nil {
+					logger.Error(err.Error())
+					resp.SendFail(err.Error())
+					return
+				}
+				resp.Send(string(data))
+				return
 
-			data, err := w.humCtrlHdl.ProcessHumCtrlStatus(args[4], stat, req)
-			if err != nil {
-				logger.Error(err.Error())
-				resp.SendFail(err.Error())
+			case "off":
+				data, err := w.humCtrlHdl.ProcessHumCtrlStatus(args[4], false, req)
+				if err != nil {
+					logger.Error(err.Error())
+					resp.SendFail(err.Error())
+					return
+				}
+				resp.Send(string(data))
+				return
+
+			case "switch":
+				data, err := w.humCtrlHdl.ProcessHumCtrlSwitchStatus(args[4], req)
+				if err != nil {
+					logger.Error(err.Error())
+					resp.SendFail(err.Error())
+					return
+				}
+				resp.Send(string(data))
+				return
+
+			default:
+				resp.SendFail("Bad request")
 				return
 			}
-			resp.Send(string(data))
-			return
 		} else {
 			resp.SendFail("Bad request")
 			return
@@ -247,7 +267,7 @@ func (w *WebServer) HumCtrlHandler(writer http.ResponseWriter, req *http.Request
 		}
 	}
 
-	// Get single sensor data
+	// Get single mod data
 	if len(args) == 5 && args[4] != "" {
 		data, err := w.humCtrlHdl.ProcessHumCtrlSingleHandler(args[4], req)
 		if err != nil {
@@ -259,7 +279,7 @@ func (w *WebServer) HumCtrlHandler(writer http.ResponseWriter, req *http.Request
 		return
 	}
 
-	// Get all meteo sensors data
+	// Get all humctrl modules data
 	data, err := w.humCtrlHdl.ProcessHumCtrlAllHandler(req)
 	if err != nil {
 		logger.Error(err.Error())

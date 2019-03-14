@@ -68,6 +68,23 @@ func (s *Startup) ExecCmd(cmd string) error {
 	return nil
 }
 
+// AddCmd add new command without applying
+func (s *Startup) AddCmd(cmd string) error {
+	var params []string
+
+	parts := strings.Split(cmd, " ")
+
+	if len(parts) > FirstParam {
+		for i := FirstParam; i < len(parts); i++ {
+			params = append(params, parts[i])
+		}
+	}
+	if len(parts) < 3 {
+		return errors.New("bad command")
+	}
+	return s.mods.AddModCommand(s.fileName, parts[0], parts[1], parts[2], params)
+}
+
 // SaveAll save all commands to startup-configs file
 func (s *Startup) SaveAll() error {
 	return s.mods.SaveCommands(s.fileName)

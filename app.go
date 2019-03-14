@@ -82,11 +82,11 @@ func (a *Application) Start() {
 	// Load general application configs
 	err := a.cfg.LoadFromFile(utils.ConfigsPath)
 	if err != nil {
-		logger.Errorf("Fail to load %s configs", "main")
+		logger.Errorf("Application fail to load %s configs", "main")
 		logger.Error(err.Error())
 		return
 	}
-	logger.Infof("Configs %s was loaded", "main")
+	logger.Infof("Application configs %s was loaded", "main")
 
 	// Add lock for meteo database
 	a.locker.AddLock(utils.MeteoDBName)
@@ -94,11 +94,11 @@ func (a *Application) Start() {
 	// Load startup-configs from file and apply to application
 	err = a.startup.Load(utils.StartupCfgPath)
 	if err != nil {
-		logger.Error("Fail to read startup configs")
+		logger.Error("Application fail to read startup configs")
 		logger.Error(err.Error())
 		return
 	}
-	logger.Info("Startup configs was loaded")
+	logger.Info("Application startup configs was loaded")
 
 	// Start all application tasks
 	go a.logTask.Start()
@@ -113,24 +113,24 @@ func (a *Application) Start() {
 
 	// Start RemoteCLI server
 	go func() {
-		logger.Infof("Starting RemoteCLI server at %s:%d...", a.cfg.Settings().RCliServer.IP,
+		logger.Infof("Application starting RemoteCLI server at %s:%d", a.cfg.Settings().RCliServer.IP,
 			a.cfg.Settings().RCliServer.Port)
 
 		err = a.rcli.Start(a.cfg.Settings().RCliServer.IP, a.cfg.Settings().RCliServer.Port)
 		if err != nil {
-			logger.Error("Fail to start RemoteCLI server")
+			logger.Error("Application fail to start RemoteCLI server")
 			logger.Error(err.Error())
 			return
 		}
 	}()
 
 	// Start web server
-	logger.Infof("Starting Web server at %s:%d...", a.cfg.Settings().Server.IP,
+	logger.Infof("Application starting Web server at %s:%d", a.cfg.Settings().Server.IP,
 		a.cfg.Settings().Server.Port)
 
 	err = a.server.Start(a.cfg.Settings().Server.IP, a.cfg.Settings().Server.Port)
 	if err != nil {
-		logger.Error("Fail to start WebServer")
+		logger.Error("Application fail to start WebServer")
 		logger.Error(err.Error())
 	}
 

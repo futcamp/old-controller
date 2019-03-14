@@ -19,7 +19,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/futcamp/controller/modules/humctrl"
 	"github.com/futcamp/controller/net/webserver/handlers/netdata"
 	"github.com/futcamp/controller/utils/configs"
@@ -65,12 +64,12 @@ func (h *HumCtrlHandler) ProcessHumCtrlAllHandler(req *http.Request) ([]byte, er
 
 	for _, mod := range h.humCtrl.AllModules() {
 		m := DisplayedModule{
-			Name:       mod.Name,
-			Sensor:     mod.Sensor,
-			Humidity:   mod.Humidity,
-			Status:     mod.Data.Status(),
-			Threshold:  mod.Data.Threshold(),
-			Humidifier: mod.Humidifier,
+			Name:       mod.Name(),
+			Sensor:     mod.Sensor(),
+			Humidity:   mod.Humidity(),
+			Status:     mod.Status(),
+			Threshold:  mod.Threshold(),
+			Humidifier: mod.Humidifier(),
 		}
 
 		mods = append(mods, m)
@@ -82,7 +81,7 @@ func (h *HumCtrlHandler) ProcessHumCtrlAllHandler(req *http.Request) ([]byte, er
 	return jData, nil
 }
 
-// ProcessHumCtrlSingleHandler display actual hum control data for single module
+// ProcessHumCtrlSingleHandler display actual hum control data for single mod
 func (h *HumCtrlHandler) ProcessHumCtrlSingleHandler(modName string, req *http.Request) ([]byte, error) {
 	var data netdata.RestResponse
 
@@ -93,12 +92,12 @@ func (h *HumCtrlHandler) ProcessHumCtrlSingleHandler(modName string, req *http.R
 	mod := h.humCtrl.Module(modName)
 
 	m := DisplayedModule{
-		Name:       mod.Name,
-		Sensor:     mod.Sensor,
-		Humidity:   mod.Humidity,
-		Status:     mod.Data.Status(),
-		Threshold:  mod.Data.Threshold(),
-		Humidifier: mod.Humidifier,
+		Name:       mod.Name(),
+		Sensor:     mod.Sensor(),
+		Humidity:   mod.Humidity(),
+		Status:     mod.Status(),
+		Threshold:  mod.Threshold(),
+		Humidifier: mod.Humidifier(),
 	}
 
 	netdata.SetRestResponse(&data, "humctrl", "Humidity Control", m, req)
@@ -107,24 +106,14 @@ func (h *HumCtrlHandler) ProcessHumCtrlSingleHandler(modName string, req *http.R
 	return jData, nil
 }
 
-// ProcessHumCtrlStatus set new hum control status for single module
+// ProcessHumCtrlStatus set new hum control status for single mod
 func (h *HumCtrlHandler) ProcessHumCtrlStatus(modName string, status bool, req *http.Request) ([]byte, error) {
 	var data netdata.RestResponse
 	var resp ResultResponse
-	var stat string
 
 	// Update status state
 	mod := h.humCtrl.Module(modName)
-	mod.Data.SetStatus(status)
-
-	// Save configs
-	if status {
-		stat = "on"
-	} else {
-		stat = "off"
-	}
-	h.dynCfg.AddCommand(fmt.Sprintf("humctrl status %s %s", modName, stat))
-	h.dynCfg.SaveConfigs()
+	mod.SetStatus(status)
 
 	// Send response
 	netdata.SetRestResponse(&data, "humctrl", "Humidity Control", resp, req)
@@ -133,24 +122,36 @@ func (h *HumCtrlHandler) ProcessHumCtrlStatus(modName string, status bool, req *
 	return jData, nil
 }
 
-// ProcessHumCtrlThreshold set new hum control threshold for single module
+// ProcessHumCtrlSwitchStatus switch current hum control status for single mod
+func (h *HumCtrlHandler) ProcessHumCtrlSwitchStatus(modName string, req *http.Request) ([]byte, error) {
+	var data netdata.RestResponse
+	var resp ResultResponse
+
+	// Update status state
+	mod := h.humCtrl.Module(modName)
+	mod.SwitchStatus()
+
+	// Send response
+	netdata.SetRestResponse(&data, "humctrl", "Humidity Control", resp, req)
+
+	jData, _ := json.Marshal(&data)
+	return jData, nil
+}
+
+// ProcessHumCtrlThreshold set new hum control threshold for single mod
 func (h *HumCtrlHandler) ProcessHumCtrlThreshold(modName string, plus bool, req *http.Request) ([]byte, error) {
 	var data netdata.RestResponse
 	var resp ResultResponse
 
 	// Update threshold value
 	mod := h.humCtrl.Module(modName)
-	thresh := mod.Data.Threshold()
+	thresh := (*mod).Threshold()
 	if plus {
 		thresh++
 	} else {
 		thresh--
 	}
-	mod.Data.SetThreshold(thresh)
-
-	// Save configs
-	h.dynCfg.AddCommand(fmt.Sprintf("humctrl threshold %s %d", modName, thresh))
-	h.dynCfg.SaveConfigs()
+	mod.SetThreshold(thresh)
 
 	// Send response
 	netdata.SetRestResponse(&data, "humctrl", "Humidity Control", resp, req)

@@ -52,10 +52,10 @@ func (d *DynConfigsTask) TaskHandler() {
 
 		if d.dynCfg.GetSaveConfigs() {
 			for _, cmd := range d.dynCfg.Commands() {
-				d.startup.ExecCmd(cmd)
+				d.startup.AddCmd(cmd)
 			}
 
-			logger.Info("Saving application configs...")
+			logger.Info("DynamicConfigs saving application configs")
 
 			d.startup.SaveAll()
 			d.dynCfg.ResetSaveConfigs()

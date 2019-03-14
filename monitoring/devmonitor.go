@@ -136,6 +136,6 @@ func (d *DeviceMonitor) SendNotify(device *Device) {
 	message = fmt.Sprintf("device \"%s\" module \"%s\" is \"%s\"", device.Name,
 		device.Type, status)
 
-	logger.Infof(message)
-	d.notify.SendNotify("monitor:", message)
+	logger.Infof("Monitor %s", message)
+	d.notify.SendNotify("Monitor:", message)
 }

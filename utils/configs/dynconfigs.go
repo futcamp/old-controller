@@ -17,7 +17,9 @@
 
 package configs
 
-import "sync"
+import (
+	"sync"
+)
 
 type MeteoDBCfg struct {
 	IP     string

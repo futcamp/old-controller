@@ -15,19 +15,13 @@
 /*
 /*******************************************************************/
 
-package humctrl
+package mod
 
 import (
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 )
-
-// CtrlMeteoData controller meteo data
-type CtrlHumctrlData struct {
-	Status bool `json:"status"`
-}
 
 type WiFiController struct {
 	ip string
@@ -40,25 +34,18 @@ func NewWiFiController(ip string) *WiFiController {
 	}
 }
 
-// SyncData get actual data from controller and send cur states
-func (w *WiFiController) SyncData(status bool, heater bool) (CtrlHumctrlData, error) {
-	var data CtrlHumctrlData
-
-	res, err := http.Get(fmt.Sprintf("http://%s/humctrl?status=%t&humidifier=%t", w.ip, status, heater))
+// SyncData send cur states to controller
+func (w *WiFiController) SyncData(status bool, humidifier bool) error {
+	res, err := http.Get(fmt.Sprintf("http://%s/humctrl?status=%t&humidifier=%t", w.ip, status, humidifier))
 	if err != nil {
-		return data, err
+		return err
 	}
 	defer res.Body.Close()
 
-	byteBuf, err := ioutil.ReadAll(res.Body)
+	_, err = ioutil.ReadAll(res.Body)
 	if err != nil {
-		return data, err
+		return err
 	}
 
-	err = json.Unmarshal(byteBuf, &data)
-	if err != nil {
-		return data, err
-	}
-
-	return data, nil
+	return nil
 }

@@ -18,11 +18,10 @@
 package humctrl
 
 import (
+	"github.com/google/logger"
 	"time"
 
 	"github.com/futcamp/controller/modules/meteo"
-
-	"github.com/google/logger"
 )
 
 const (
@@ -51,23 +50,35 @@ func (h *HumControlTask) TaskHandler() {
 
 		// Update current humidity
 		for _, module := range h.humCtrl.AllModules() {
-			module.Humidity = h.meteo.Sensor(module.Sensor).MeteoData().Humidity
+			(*module).SetHumidity(h.meteo.Sensor(module.Sensor()).MeteoData().Humidity)
 		}
 
-		// Sync data with remote module
+		// SyncData data with remote mod
 		for _, module := range h.humCtrl.AllModules() {
+			// Process data
+			if module.Status() {
+				if module.Humidity() < module.Threshold() {
+					module.SetHumidifier(true)
+				} else {
+					module.SetHumidifier(false)
+				}
+			} else {
+				module.SetHumidifier(false)
+			}
+
+			// Sync states with module
 			err := module.SyncData()
 			if err != nil {
-				if !module.Error {
-					module.Error = true
-					logger.Errorf("Fail to sync data with \"%s\" module!", module.Name)
+				if !module.Error() {
+					module.SetError(true)
+					logger.Errorf("Fail to sync data with \"%s\" mod!", module.Name())
 					logger.Error(err.Error())
 				}
 				continue
 			}
-			if module.Error {
-				module.Error = false
-				logger.Errorf("Module \"%s\" was synced.", module.Name)
+			if module.Error() {
+				module.SetError(false)
+				logger.Errorf("Module \"%s\" was synced.", module.Name())
 			}
 		}
 

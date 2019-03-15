@@ -23,7 +23,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/futcamp/controller/modules/meteo"
+	"github.com/futcamp/controller/devices"
 	"github.com/futcamp/controller/net/webserver/handlers"
 	"github.com/futcamp/controller/utils/configs"
 
@@ -36,7 +36,7 @@ const (
 
 type WebServer struct {
 	cfg        *configs.Configs
-	meteo      *meteo.MeteoStation
+	meteo      *devices.MeteoStation
 	meteoHdl   *handlers.MeteoHandler
 	logHdl     *handlers.LogHandler
 	monitorHdl *handlers.MonitorHandler
@@ -44,7 +44,7 @@ type WebServer struct {
 }
 
 // NewWebServer make new struct
-func NewWebServer(cfg *configs.Configs, meteo *meteo.MeteoStation, mh *handlers.MeteoHandler,
+func NewWebServer(cfg *configs.Configs, meteo *devices.MeteoStation, mh *handlers.MeteoHandler,
 	lh *handlers.LogHandler, mnh *handlers.MonitorHandler,
 	hch *handlers.HumCtrlHandler) *WebServer {
 	return &WebServer{
@@ -279,7 +279,7 @@ func (w *WebServer) HumCtrlHandler(writer http.ResponseWriter, req *http.Request
 		return
 	}
 
-	// Get all humctrl modules data
+	// Get all humctrl devices data
 	data, err := w.humCtrlHdl.ProcessHumCtrlAllHandler(req)
 	if err != nil {
 		logger.Error(err.Error())

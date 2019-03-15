@@ -24,9 +24,8 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/futcamp/controller/modules/humctrl"
-	hummod "github.com/futcamp/controller/modules/humctrl/mod"
-	"github.com/futcamp/controller/modules/meteo"
+	"github.com/futcamp/controller/devices"
+	"github.com/futcamp/controller/devices/modules"
 	"github.com/futcamp/controller/monitoring"
 	"github.com/futcamp/controller/notifier"
 	"github.com/futcamp/controller/utils/configs"
@@ -37,19 +36,19 @@ import (
 type StartupMods struct {
 	cfg        *configs.Configs
 	io         *StartupIO
-	meteo      *meteo.MeteoStation
+	meteo      *devices.MeteoStation
 	dynCfg     *configs.DynamicConfigs
 	notify     *notifier.Notifier
 	devMonitor *monitoring.DeviceMonitor
-	humCtrl    *humctrl.HumControl
-	meteoLCD   *meteo.MeteoDisplays
+	humCtrl    *devices.HumControl
+	meteoLCD   *devices.MeteoDisplay
 }
 
 // NewStartupMods make new struct
 func NewStartupMods(io *StartupIO, dc *configs.DynamicConfigs,
-	meteo *meteo.MeteoStation, ntf *notifier.Notifier,
+	meteo *devices.MeteoStation, ntf *notifier.Notifier,
 	mon *monitoring.DeviceMonitor, cfg *configs.Configs,
-	hctrl *humctrl.HumControl, mlcd *meteo.MeteoDisplays) *StartupMods {
+	hctrl *devices.HumControl, mlcd *devices.MeteoDisplay) *StartupMods {
 	return &StartupMods{
 		io:         io,
 		dynCfg:     dc,
@@ -111,7 +110,7 @@ func (s *StartupMods) DeleteModCommand(fileName string, module string, cmd strin
 		switch module {
 		case "meteo":
 			if s.cfg.Settings().Modules.Meteo {
-				s.meteo.DeleteSensor(dev)
+				s.meteo.DeleteModule(dev)
 			}
 			break
 
@@ -197,22 +196,22 @@ func (s *StartupMods) applyConfigs(module string, cmd string, dev string, args [
 func (s *StartupMods) applyMeteoLCDCfg(cmd string, dev string, args []string) error {
 	switch cmd {
 	case "add-device":
-		lcd := meteo.NewMeteoDisplay(dev, "")
+		lcd := modules.NewDisplayModule(dev)
 		s.meteoLCD.AddDisplay(dev, lcd)
 		logger.Infof("Display add new device \"%s\"", dev)
 		break
 
 	case "ip":
 		lcd := s.meteoLCD.Display(dev)
-		lcd.IP = args[0]
-		logger.Infof("Display set ip address \"%s\" for device \"%s\"", lcd.IP, dev)
+		lcd.SetIP(args[0])
+		logger.Infof("Display set ip address \"%s\" for device \"%s\"", args[0], dev)
 		break
 
 	case "sensors":
 		lcd := s.meteoLCD.Display(dev)
 
 		for _, sensor := range args {
-			lcd.AddDisplayingSensor(sensor)
+			lcd.AddSensor(sensor)
 			logger.Infof("Display add displaying sensor \"%s\" for device \"%s\"", sensor, dev)
 		}
 		break
@@ -225,21 +224,21 @@ func (s *StartupMods) applyMeteoLCDCfg(cmd string, dev string, args []string) er
 func (s *StartupMods) applyMeteoCfg(cmd string, dev string, args []string) error {
 	switch cmd {
 	case "add-device":
-		sensor := s.meteo.NewMeteoSensor(dev, "", "", 0, 0)
-		s.meteo.AddSensor(dev, sensor)
+		mod := modules.NewMeteoModule(dev)
+		s.meteo.AddModule(dev, mod)
 		logger.Infof("Meteo add new device \"%s\"", dev)
 		break
 
 	case "ip":
-		sensor := s.meteo.Sensor(dev)
-		sensor.IP = args[0]
-		logger.Infof("Meteo set ip address \"%s\" for device \"%s\"", sensor.IP, dev)
+		mod := s.meteo.Module(dev)
+		mod.SetIP(args[0])
+		logger.Infof("Meteo set ip address \"%s\" for device \"%s\"", args[0], dev)
 		break
 
 	case "type":
-		sensor := s.meteo.Sensor(dev)
-		sensor.Type = args[0]
-		logger.Infof("Meteo set sensor type \"%s\" for device \"%s\"", sensor.Type, dev)
+		mod := s.meteo.Module(dev)
+		mod.SetType(args[0])
+		logger.Infof("Meteo set sensor type \"%s\" for device \"%s\"", args[0], dev)
 		break
 
 	case "channel":
@@ -248,9 +247,9 @@ func (s *StartupMods) applyMeteoCfg(cmd string, dev string, args []string) error
 			return err
 		}
 
-		sensor := s.meteo.Sensor(dev)
-		sensor.Channel = ch
-		logger.Infof("Meteo set sensor channel \"%d\" for device \"%s\"", sensor.Channel, dev)
+		mod := s.meteo.Module(dev)
+		mod.SetChannel(ch)
+		logger.Infof("Meteo set sensor channel \"%d\" for device \"%s\"", ch, dev)
 		break
 
 	case "temp-delta":
@@ -259,9 +258,9 @@ func (s *StartupMods) applyMeteoCfg(cmd string, dev string, args []string) error
 			return err
 		}
 
-		sensor := s.meteo.Sensor(dev)
-		sensor.TempDelta = td
-		logger.Infof("Meteo set sensor temperature delta \"%d\" for device \"%s\"", sensor.TempDelta, dev)
+		mod := s.meteo.Module(dev)
+		mod.SetDelta(td)
+		logger.Infof("Meteo set sensor temperature delta \"%d\" for device \"%s\"", td, dev)
 		break
 	}
 
@@ -272,7 +271,7 @@ func (s *StartupMods) applyMeteoCfg(cmd string, dev string, args []string) error
 func (s *StartupMods) applyHumCtrlCfg(cmd string, dev string, args []string) error {
 	switch cmd {
 	case "add-device":
-		mod := hummod.NewHumCtrlModule(dev, s.dynCfg)
+		mod := modules.NewHumCtrlModule(dev, s.dynCfg)
 		s.humCtrl.AddModule(dev, mod)
 		logger.Infof("HumControl add new device \"%s\"", dev)
 		break
@@ -389,10 +388,10 @@ func (s *StartupMods) applyMonitorCfg(cmd string, dev string, args []string) err
 				if i == 0 {
 					continue
 				}
-				sensor := s.meteo.Sensor(device)
-				s.devMonitor.AddDevice(sensor.Name, "meteo", sensor.IP)
+				mod := s.meteo.Module(device)
+				s.devMonitor.AddDevice(mod.Name(), "meteo", mod.IP())
 				logger.Infof("Monitor add new device from mod \"%s\" sensor \"%s\" for monitor \"%s\"",
-					args[0], sensor.Name, dev)
+					args[0], mod.Name(), dev)
 			}
 			break
 
@@ -414,9 +413,9 @@ func (s *StartupMods) applyMonitorCfg(cmd string, dev string, args []string) err
 					continue
 				}
 				lcd := s.meteoLCD.Display(device)
-				s.devMonitor.AddDevice(lcd.Name, "display", lcd.IP)
+				s.devMonitor.AddDevice(lcd.Name(), "display", lcd.IP())
 				logger.Infof("Monitor add new device from mod \"%s\" display \"%s\" for monitor \"%s\"",
-					args[0], lcd.Name, dev)
+					args[0], lcd.Name(), dev)
 			}
 			break
 		}

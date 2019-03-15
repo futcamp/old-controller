@@ -15,12 +15,15 @@
 /*
 /*******************************************************************/
 
-package mod
+package modules
 
 import (
 	"fmt"
+	"github.com/futcamp/controller/devices/hardware"
 
+	"github.com/futcamp/controller/devices/data"
 	"github.com/futcamp/controller/utils/configs"
+
 	"github.com/google/logger"
 )
 
@@ -29,7 +32,7 @@ type HumCtrlModule struct {
 	ip     string
 	sensor string
 	error  bool
-	data   HumCtrlData
+	data   data.HumCtrlData
 	dynCfg *configs.DynamicConfigs
 }
 
@@ -162,8 +165,7 @@ func (h *HumCtrlModule) SwitchStatus() {
 
 // SyncData sync data with module
 func (h *HumCtrlModule) SyncData() error {
-	ctrl := NewWiFiController(h.IP())
-	err := ctrl.SyncData(h.Status(), h.Humidifier())
+	_, err := hardware.HdkSyncHumCtrlData(h.ip, h.data.Status(), h.data.Humidifier())
 	if err != nil {
 		return err
 	}

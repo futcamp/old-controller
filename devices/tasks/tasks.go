@@ -15,37 +15,31 @@
 /*
 /*******************************************************************/
 
-package mod
+package tasks
 
-import (
-	"fmt"
-	"io/ioutil"
-	"net/http"
-)
+import "github.com/futcamp/controller/utils/configs"
 
-type WiFiController struct {
-	ip string
+type DeviceTasks struct {
+	cfg       *configs.Configs
+	meteoTask *MeteoTask
+	hctrlTask *HumControlTask
 }
 
-// NewWiFiController make new struct
-func NewWiFiController(ip string) *WiFiController {
-	return &WiFiController{
-		ip: ip,
+// NewDeviceTasks make new struct
+func NewDeviceTasks(cfg *configs.Configs, mt *MeteoTask, ht *HumControlTask) *DeviceTasks {
+	return &DeviceTasks{
+		cfg:       cfg,
+		meteoTask: mt,
+		hctrlTask: ht,
 	}
 }
 
-// SyncData send cur states to controller
-func (w *WiFiController) SyncData(status bool, humidifier bool) error {
-	res, err := http.Get(fmt.Sprintf("http://%s/humctrl?status=%t&humidifier=%t", w.ip, status, humidifier))
-	if err != nil {
-		return err
+// RunTasks run all devices tasks
+func (d *DeviceTasks) RunTasks() {
+	if d.cfg.Settings().Modules.Meteo {
+		d.meteoTask.Start()
 	}
-	defer res.Body.Close()
-
-	_, err = ioutil.ReadAll(res.Body)
-	if err != nil {
-		return err
+	if d.cfg.Settings().Modules.Humctrl {
+		d.hctrlTask.Start()
 	}
-
-	return nil
 }

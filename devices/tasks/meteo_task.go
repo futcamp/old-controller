@@ -15,27 +15,31 @@
 /*
 /*******************************************************************/
 
-package meteo
+package tasks
 
 import (
 	"time"
 
+	"github.com/futcamp/controller/devices"
+	"github.com/futcamp/controller/devices/db"
 	"github.com/futcamp/controller/utils/configs"
 
 	"github.com/google/logger"
 )
 
 const (
-	taskDelay = 1
+	taskDelay        = 1
+	MaxReadDelay     = 10
+	SensorErrorValue = -255
 )
 
 // meteoTask meteo task struct
 type MeteoTask struct {
-	meteo           *MeteoStation
-	meteoDB         *MeteoDatabase
+	meteo           *devices.MeteoStation
+	meteoDB         *db.MeteoDatabase
 	dynCfg          *configs.DynamicConfigs
 	reqTimer        *time.Timer
-	displays        *MeteoDisplays
+	displays        *devices.MeteoDisplay
 	sensorsCounter  int
 	databaseCounter int
 	displayCounter  int
@@ -43,8 +47,8 @@ type MeteoTask struct {
 }
 
 // NewMeteoTask make new struct
-func NewMeteoTask(meteo *MeteoStation, mdb *MeteoDatabase, dc *configs.DynamicConfigs,
-	disp *MeteoDisplays) *MeteoTask {
+func NewMeteoTask(meteo *devices.MeteoStation, mdb *db.MeteoDatabase,
+	dc *configs.DynamicConfigs, disp *devices.MeteoDisplay) *MeteoTask {
 	return &MeteoTask{
 		meteo:           meteo,
 		meteoDB:         mdb,
@@ -68,32 +72,25 @@ func (m *MeteoTask) TaskHandler() {
 		// Get actual data from controller
 		if m.sensorsCounter == m.dynCfg.Settings().Timers.MeteoSensorsDelay {
 			m.sensorsCounter = 0
-			sensors := m.meteo.AllSensors()
+			mods := m.meteo.AllModules()
 
 			// Get actual data from controllers
-			for _, sensor := range sensors {
-				err := sensor.SyncMeteoData()
+			for _, mod := range mods {
+				err := mod.SyncData()
 				if err != nil {
-					sensor.Errors++
+					mod.SetError()
 
-					if sensor.Errors == 1 {
-						logger.Errorf("Fail to read meteo data from sensor \"%s\"", sensor.Name)
-						logger.Error(err.Error())
+					if mod.Errors() == 1 {
+						logger.Errorf("Meteo fail to read meteo data from sensor \"%s\"", mod.Name())
 					}
 
-					if sensor.Errors > MaxReadDelay {
-						errData := MeteoData{
-							Temp:     SensorErrorValue,
-							Humidity: SensorErrorValue,
-							Pressure: SensorErrorValue,
-						}
-
-						sensor.SetMeteoData(&errData)
-						sensor.Errors = 0
+					if mod.Errors() > MaxReadDelay {
+						mod.SetErrorValues()
+						mod.ResetErrors()
 					}
 					continue
 				} else {
-					sensor.Errors = 0
+					mod.ResetErrors()
 				}
 			}
 		}
@@ -102,10 +99,9 @@ func (m *MeteoTask) TaskHandler() {
 		if m.displayCounter == m.dynCfg.Settings().Timers.DisplayDelay {
 			m.displayCounter = 0
 			for _, display := range m.displays.Displays() {
-				for _, sensorName := range *display.Sensors() {
-					sensor := m.meteo.Sensor(sensorName)
-					data := sensor.MeteoData()
-					err := display.DisplayMeteo(sensorName, data.Temp, data.Humidity, data.Pressure)
+				for _, modName := range *display.Sensors() {
+					mod := m.meteo.Module(modName)
+					err := display.SyncData(modName, mod.Temp(), mod.Humidity(), mod.Pressure())
 					if err != nil {
 						continue
 					}
@@ -119,29 +115,25 @@ func (m *MeteoTask) TaskHandler() {
 			hour := time.Now().Hour()
 
 			if hour != m.lastHour {
-				db := m.dynCfg.Settings().MeteoDB
-				err := m.meteoDB.Connect(db.IP, db.User, db.Passwd, db.Base)
+				mdb := m.dynCfg.Settings().MeteoDB
+				err := m.meteoDB.Connect(mdb.IP, mdb.User, mdb.Passwd, mdb.Base)
 				if err != nil {
 					logger.Errorf("Fail to load %s database", "meteo")
 					logger.Error(err.Error())
 					continue
 				}
 
-				for _, sensor := range m.meteo.AllSensors() {
-					mdata := sensor.MeteoData()
-
-					data := &MeteoDBData{
-						Sensor:   sensor.Name,
-						Temp:     mdata.Temp,
-						Humidity: mdata.Humidity,
-						Pressure: mdata.Pressure,
+				for _, mod := range m.meteo.AllModules() {
+					data := &db.MeteoDBData{
+						Sensor:   mod.Name(),
+						Temp:     mod.Temp(),
+						Humidity: mod.Humidity(),
+						Pressure: mod.Pressure(),
 					}
 
 					err = m.meteoDB.AddMeteoData(data)
 					if err != nil {
-						logger.Errorf("Fail to add to database data from sensor %s",
-							sensor.Name)
-						logger.Error(sensor.Name, " ", err.Error())
+						logger.Errorf("Fail to add to database data from sensor %s", mod.Name())
 					}
 				}
 

@@ -19,10 +19,11 @@ package handlers
 
 import (
 	"encoding/json"
-	"github.com/futcamp/controller/modules/humctrl"
+	"net/http"
+
+	"github.com/futcamp/controller/devices"
 	"github.com/futcamp/controller/net/webserver/handlers/netdata"
 	"github.com/futcamp/controller/utils/configs"
-	"net/http"
 
 	"github.com/pkg/errors"
 )
@@ -41,19 +42,19 @@ type ResultResponse struct {
 }
 
 type HumCtrlHandler struct {
-	humCtrl *humctrl.HumControl
+	humCtrl *devices.HumControl
 	dynCfg  *configs.DynamicConfigs
 }
 
 // NewHumCtrlHandler make new struct
-func NewHumCtrlHandler(hc *humctrl.HumControl, dc *configs.DynamicConfigs) *HumCtrlHandler {
+func NewHumCtrlHandler(hc *devices.HumControl, dc *configs.DynamicConfigs) *HumCtrlHandler {
 	return &HumCtrlHandler{
 		humCtrl: hc,
 		dynCfg:  dc,
 	}
 }
 
-// ProcessHumCtrlAllHandler display actual hum control data for all modules
+// ProcessHumCtrlAllHandler display actual hum control data for all devices
 func (h *HumCtrlHandler) ProcessHumCtrlAllHandler(req *http.Request) ([]byte, error) {
 	var mods []DisplayedModule
 	data := &netdata.RestResponse{}

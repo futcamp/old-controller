@@ -15,21 +15,21 @@
 /*
 /*******************************************************************/
 
-package humctrl
+package devices
 
 import (
-	"github.com/futcamp/controller/modules/humctrl/mod"
+	"github.com/futcamp/controller/devices/modules"
 	"github.com/futcamp/controller/utils/configs"
 )
 
 type HumControl struct {
-	modules map[string]*mod.HumCtrlModule
+	modules map[string]*modules.HumCtrlModule
 	dynCfg  *configs.DynamicConfigs
 }
 
 // NewHumidityControl make new struct
 func NewHumidityControl(dc *configs.DynamicConfigs) *HumControl {
-	mods := make(map[string]*mod.HumCtrlModule)
+	mods := make(map[string]*modules.HumCtrlModule)
 	return &HumControl{
 		modules: mods,
 		dynCfg:  dc,
@@ -37,7 +37,7 @@ func NewHumidityControl(dc *configs.DynamicConfigs) *HumControl {
 }
 
 // AddModule add new humidity control mod
-func (h *HumControl) AddModule(name string, mod *mod.HumCtrlModule) {
+func (h *HumControl) AddModule(name string, mod *modules.HumCtrlModule) {
 	h.modules[name] = mod
 }
 
@@ -47,13 +47,13 @@ func (h *HumControl) DeleteModule(name string) {
 }
 
 // Module get mod by name
-func (h *HumControl) Module(name string) *mod.HumCtrlModule {
+func (h *HumControl) Module(name string) *modules.HumCtrlModule {
 	return h.modules[name]
 }
 
-// AllModules get all modules list
-func (h *HumControl) AllModules() []*mod.HumCtrlModule {
-	var mods []*mod.HumCtrlModule
+// AllModules get all devices list
+func (h *HumControl) AllModules() []*modules.HumCtrlModule {
+	var mods []*modules.HumCtrlModule
 
 	for _, mod := range h.modules {
 		mods = append(mods, mod)

@@ -15,30 +15,27 @@
 /*
 /*******************************************************************/
 
-package humctrl
+package tasks
 
 import (
-	"github.com/futcamp/controller/utils/configs"
-	"github.com/google/logger"
 	"time"
 
-	"github.com/futcamp/controller/modules/meteo"
-)
-
-const (
-	taskDelay = 1
+	"github.com/futcamp/controller/utils/configs"
+	"github.com/google/logger"
+	"github.com/futcamp/controller/devices"
 )
 
 // HumControlTask humidity control task struct
 type HumControlTask struct {
-	meteo    *meteo.MeteoStation
+	meteo    *devices.MeteoStation
 	dynCfg   *configs.DynamicConfigs
-	humCtrl  *HumControl
+	humCtrl  *devices.HumControl
 	reqTimer *time.Timer
 }
 
 // NewHumControlTask make new struct
-func NewHumControlTask(hctrl *HumControl, meteo *meteo.MeteoStation, dc *configs.DynamicConfigs) *HumControlTask {
+func NewHumControlTask(hctrl *devices.HumControl, meteo *devices.MeteoStation,
+	dc *configs.DynamicConfigs) *HumControlTask {
 	return &HumControlTask{
 		humCtrl: hctrl,
 		meteo:   meteo,
@@ -53,10 +50,10 @@ func (h *HumControlTask) TaskHandler() {
 
 		// Update current humidity
 		for _, module := range h.humCtrl.AllModules() {
-			(*module).SetHumidity(h.meteo.Sensor(module.Sensor()).MeteoData().Humidity)
+			module.SetHumidity(h.meteo.Module(module.Sensor()).Humidity())
 		}
 
-		// SyncData data with remote modules
+		// SyncData data with remote devices
 		for _, module := range h.humCtrl.AllModules() {
 			// Process data
 			if module.Status() {

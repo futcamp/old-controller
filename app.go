@@ -18,8 +18,9 @@
 package main
 
 import (
-	"github.com/futcamp/controller/modules/humctrl"
-	"github.com/futcamp/controller/modules/meteo"
+	"github.com/futcamp/controller/devices"
+	"github.com/futcamp/controller/devices/db"
+	"github.com/futcamp/controller/devices/tasks"
 	"github.com/futcamp/controller/monitoring"
 	"github.com/futcamp/controller/net/rcli"
 	"github.com/futcamp/controller/net/webserver"
@@ -35,33 +36,31 @@ type Application struct {
 	log         *utils.Logger
 	logTask     *utils.LogTask
 	cfg         *configs.Configs
-	meteo       *meteo.MeteoStation
+	meteo       *devices.MeteoStation
 	server      *webserver.WebServer
-	meteoTask   *meteo.MeteoTask
 	locker      *utils.Locker
-	meteoDB     *meteo.MeteoDatabase
+	meteoDB     *db.MeteoDatabase
 	monitor     *monitoring.DeviceMonitor
 	monitorTask *monitoring.MonitorTask
 	startup     *startup.Startup
 	rcli        *rcli.RCliServer
 	dynCfg      *configs.DynamicConfigs
-	hctrlTask   *humctrl.HumControlTask
 	dynCfgTask  *cfgtask.DynConfigsTask
+	tasks       *tasks.DeviceTasks
 }
 
 // NewApplication make new struct
 func NewApplication(log *utils.Logger, cfg *configs.Configs,
-	meteo *meteo.MeteoStation, srv *webserver.WebServer, mTask *meteo.MeteoTask,
-	lTask *utils.LogTask, lck *utils.Locker, mdb *meteo.MeteoDatabase,
+	meteo *devices.MeteoStation, srv *webserver.WebServer,
+	lTask *utils.LogTask, lck *utils.Locker, mdb *db.MeteoDatabase,
 	monitor *monitoring.DeviceMonitor, monitorTask *monitoring.MonitorTask,
 	stp *startup.Startup, rc *rcli.RCliServer, dc *configs.DynamicConfigs,
-	hct *humctrl.HumControlTask, dct *cfgtask.DynConfigsTask) *Application {
+	dct *cfgtask.DynConfigsTask, tsks *tasks.DeviceTasks) *Application {
 	return &Application{
 		log:         log,
 		cfg:         cfg,
 		meteo:       meteo,
 		server:      srv,
-		meteoTask:   mTask,
 		logTask:     lTask,
 		locker:      lck,
 		meteoDB:     mdb,
@@ -70,12 +69,12 @@ func NewApplication(log *utils.Logger, cfg *configs.Configs,
 		startup:     stp,
 		rcli:        rc,
 		dynCfg:      dc,
-		hctrlTask:   hct,
 		dynCfgTask:  dct,
+		tasks:       tsks,
 	}
 }
 
-// Start run init functions of all modules
+// Start run init functions of all devices
 func (a *Application) Start() {
 	a.log.Init(utils.LogPath)
 
@@ -104,12 +103,7 @@ func (a *Application) Start() {
 	go a.logTask.Start()
 	go a.monitorTask.Start()
 	go a.dynCfgTask.Start()
-	if a.cfg.Settings().Modules.Meteo {
-		go a.meteoTask.Start()
-	}
-	if a.cfg.Settings().Modules.Humctrl {
-		go a.hctrlTask.Start()
-	}
+	a.tasks.RunTasks()
 
 	// Start RemoteCLI server
 	go func() {
@@ -137,7 +131,7 @@ func (a *Application) Start() {
 	logger.Info("Application was finished")
 }
 
-// Free unload all modules from memory
+// Free unload all devices from memory
 func (a *Application) Free() {
 	a.log.Free()
 }

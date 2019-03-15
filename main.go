@@ -19,11 +19,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/futcamp/controller/utils/configs/cfgtask"
-	"github.com/futcamp/controller/utils/startup"
 
-	"github.com/futcamp/controller/modules/humctrl"
-	"github.com/futcamp/controller/modules/meteo"
+	"github.com/futcamp/controller/devices"
+	"github.com/futcamp/controller/devices/db"
+	"github.com/futcamp/controller/devices/tasks"
 	"github.com/futcamp/controller/monitoring"
 	"github.com/futcamp/controller/net/rcli"
 	"github.com/futcamp/controller/net/webserver"
@@ -32,6 +31,8 @@ import (
 	"github.com/futcamp/controller/updater"
 	"github.com/futcamp/controller/utils"
 	"github.com/futcamp/controller/utils/configs"
+	"github.com/futcamp/controller/utils/configs/cfgtask"
+	"github.com/futcamp/controller/utils/startup"
 	"github.com/futcamp/controller/utils/startup/io"
 
 	"go.uber.org/dig"
@@ -47,14 +48,15 @@ func main() {
 	container.Provide(notifier.NewNotifier)
 	container.Provide(updater.NewUpdater)
 	container.Provide(startup.NewStartup)
+	container.Provide(tasks.NewDeviceTasks)
 
-	container.Provide(meteo.NewMeteoStation)
-	container.Provide(meteo.NewMeteoTask)
-	container.Provide(meteo.NewMeteoDatabase)
-	container.Provide(meteo.NewMeteoDisplays)
+	container.Provide(devices.NewMeteoStation)
+	container.Provide(tasks.NewMeteoTask)
+	container.Provide(db.NewMeteoDatabase)
+	container.Provide(devices.NewMeteoDisplay)
 
-	container.Provide(humctrl.NewHumidityControl)
-	container.Provide(humctrl.NewHumControlTask)
+	container.Provide(devices.NewHumidityControl)
+	container.Provide(tasks.NewHumControlTask)
 	container.Provide(handlers.NewHumCtrlHandler)
 
 	container.Provide(handlers.NewMeteoHandler)

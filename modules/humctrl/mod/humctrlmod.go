@@ -19,6 +19,7 @@ package mod
 
 import (
 	"fmt"
+
 	"github.com/futcamp/controller/utils/configs"
 	"github.com/google/logger"
 )
@@ -127,9 +128,6 @@ func (h *HumCtrlModule) SetThreshold(value int) {
 	// Save threshold to configs
 	h.dynCfg.AddCommand(fmt.Sprintf("humctrl threshold %s %d", h.Name(), value))
 	h.dynCfg.SaveConfigs()
-
-	// Sync threshold with module
-	h.SyncData()
 }
 
 // SetStatus set new humctrl status
@@ -150,9 +148,6 @@ func (h *HumCtrlModule) SetStatus(status bool) {
 	// Save status to configs
 	h.dynCfg.AddCommand(fmt.Sprintf("humctrl status %s %s", h.Name(), stat))
 	h.dynCfg.SaveConfigs()
-
-	// Sync status with module
-	h.SyncData()
 }
 
 // SwitchStatus switch humctrl status

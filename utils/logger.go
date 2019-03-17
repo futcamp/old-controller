@@ -43,7 +43,7 @@ func (l *Logger) Init(path string) {
 	var err error
 	date := time.Now().Format("2006-01-02")
 
-	// Configuring log module
+	// Configuring log mod
 	l.LogFile, err = os.OpenFile(fmt.Sprintf("%s%s.log", path, date), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0660)
 	if err != nil {
 		fmt.Println("Fail to open log file!")
@@ -92,7 +92,7 @@ func (l *Logger) ReadLogByDate(path string, date string) ([]string, error) {
 	return logs, nil
 }
 
-// Free unload logger module
+// Free unload logger mod
 func (l *Logger) Free() {
 	if l.Log != nil {
 		l.Log.Close()

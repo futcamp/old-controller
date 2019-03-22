@@ -28,7 +28,7 @@ import (
 )
 
 type RestResponse struct {
-	Module      string      `json:"module"`
+	Module      string      `json:"mod"`
 	Description string      `json:"description"`
 	Api         string      `json:"api"`
 	Time        string      `json:"time"`

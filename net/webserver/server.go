@@ -23,7 +23,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/futcamp/controller/modules/meteo"
+	"github.com/futcamp/controller/devices"
 	"github.com/futcamp/controller/net/webserver/handlers"
 	"github.com/futcamp/controller/utils/configs"
 
@@ -36,21 +36,24 @@ const (
 
 type WebServer struct {
 	cfg        *configs.Configs
-	meteo      *meteo.MeteoStation
+	meteo      *devices.MeteoStation
 	meteoHdl   *handlers.MeteoHandler
 	logHdl     *handlers.LogHandler
 	monitorHdl *handlers.MonitorHandler
+	humCtrlHdl *handlers.HumCtrlHandler
 }
 
 // NewWebServer make new struct
-func NewWebServer(cfg *configs.Configs, meteo *meteo.MeteoStation, mh *handlers.MeteoHandler,
-	lh *handlers.LogHandler, mnh *handlers.MonitorHandler) *WebServer {
+func NewWebServer(cfg *configs.Configs, meteo *devices.MeteoStation, mh *handlers.MeteoHandler,
+	lh *handlers.LogHandler, mnh *handlers.MonitorHandler,
+	hch *handlers.HumCtrlHandler) *WebServer {
 	return &WebServer{
 		cfg:        cfg,
 		meteo:      meteo,
 		meteoHdl:   mh,
 		logHdl:     lh,
 		monitorHdl: mnh,
+		humCtrlHdl: hch,
 	}
 }
 
@@ -63,6 +66,9 @@ func (w *WebServer) Start(ip string, port int) error {
 	mux.HandleFunc(fmt.Sprintf("/api/%s/monitoring/", configs.ApiVersion), w.MonitorHandler)
 	if w.cfg.Settings().Modules.Meteo {
 		mux.HandleFunc(fmt.Sprintf("/api/%s/meteo/", configs.ApiVersion), w.MeteoHandler)
+	}
+	if w.cfg.Settings().Modules.Humctrl {
+		mux.HandleFunc(fmt.Sprintf("/api/%s/humctrl/", configs.ApiVersion), w.HumCtrlHandler)
 	}
 
 	server := &http.Server{
@@ -170,4 +176,116 @@ func (w *WebServer) MonitorHandler(writer http.ResponseWriter, req *http.Request
 	}
 
 	resp.Send(string(devices))
+}
+
+// HumCtrlHandler hum control requests handler
+func (w *WebServer) HumCtrlHandler(writer http.ResponseWriter, req *http.Request) {
+	resp := NewResponse(&writer, configs.AppName)
+	args := strings.Split(req.RequestURI, "/")
+
+	// Change status
+	if len(args) == 7 && args[5] == "status" && args[6] != "" {
+		if req.Method == "PUT" {
+			switch args[6] {
+			case "on":
+				data, err := w.humCtrlHdl.ProcessHumCtrlStatus(args[4], true, req)
+				if err != nil {
+					logger.Error(err.Error())
+					resp.SendFail(err.Error())
+					return
+				}
+				resp.Send(string(data))
+				return
+
+			case "off":
+				data, err := w.humCtrlHdl.ProcessHumCtrlStatus(args[4], false, req)
+				if err != nil {
+					logger.Error(err.Error())
+					resp.SendFail(err.Error())
+					return
+				}
+				resp.Send(string(data))
+				return
+
+			case "switch":
+				data, err := w.humCtrlHdl.ProcessHumCtrlSwitchStatus(args[4], req)
+				if err != nil {
+					logger.Error(err.Error())
+					resp.SendFail(err.Error())
+					return
+				}
+				resp.Send(string(data))
+				return
+
+			default:
+				resp.SendFail("Bad request")
+				return
+			}
+		} else {
+			resp.SendFail("Bad request")
+			return
+		}
+	}
+
+	// Change threshold
+	if len(args) == 7 && args[5] == "threshold" && args[6] != "" {
+		if req.Method == "PUT" {
+			if args[5] == "threshold" {
+				switch args[6] {
+				case "plus":
+					data, err := w.humCtrlHdl.ProcessHumCtrlThreshold(args[4], true, req)
+					if err != nil {
+						logger.Error(err.Error())
+						resp.SendFail(err.Error())
+						return
+					}
+					resp.Send(string(data))
+					return
+
+				case "minus":
+					data, err := w.humCtrlHdl.ProcessHumCtrlThreshold(args[4], false, req)
+					if err != nil {
+						logger.Error(err.Error())
+						resp.SendFail(err.Error())
+						return
+					}
+					resp.Send(string(data))
+					break
+
+				default:
+					resp.SendFail("Bad request")
+					break
+				}
+				return
+			} else {
+				resp.SendFail("Bad request")
+				return
+			}
+		} else {
+			resp.SendFail("Bad request method")
+			return
+		}
+	}
+
+	// Get single mod data
+	if len(args) == 5 && args[4] != "" {
+		data, err := w.humCtrlHdl.ProcessHumCtrlSingleHandler(args[4], req)
+		if err != nil {
+			logger.Error(err.Error())
+			resp.SendFail(err.Error())
+			return
+		}
+		resp.Send(string(data))
+		return
+	}
+
+	// Get all humctrl devices data
+	data, err := w.humCtrlHdl.ProcessHumCtrlAllHandler(req)
+	if err != nil {
+		logger.Error(err.Error())
+		resp.SendFail(err.Error())
+		return
+	}
+	resp.Send(string(data))
+	return
 }

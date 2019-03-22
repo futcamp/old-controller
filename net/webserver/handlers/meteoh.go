@@ -21,7 +21,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/futcamp/controller/modules/meteo"
+	"github.com/futcamp/controller/devices"
+	"github.com/futcamp/controller/devices/db"
 	"github.com/futcamp/controller/net/webserver/handlers/netdata"
 	"github.com/futcamp/controller/utils/configs"
 
@@ -37,13 +38,13 @@ type DisplayedSensor struct {
 }
 
 type MeteoHandler struct {
-	meteo   *meteo.MeteoStation
-	meteoDB *meteo.MeteoDatabase
+	meteo   *devices.MeteoStation
+	meteoDB *db.MeteoDatabase
 	dynCfg  *configs.DynamicConfigs
 }
 
 // NewMeteoHandler make new struct
-func NewMeteoHandler(meteo *meteo.MeteoStation, mdb *meteo.MeteoDatabase) *MeteoHandler {
+func NewMeteoHandler(meteo *devices.MeteoStation, mdb *db.MeteoDatabase) *MeteoHandler {
 	return &MeteoHandler{
 		meteo:   meteo,
 		meteoDB: mdb,
@@ -52,28 +53,26 @@ func NewMeteoHandler(meteo *meteo.MeteoStation, mdb *meteo.MeteoDatabase) *Meteo
 
 // ProcessMeteoAllHandler display actual meteo data for all sensors
 func (m *MeteoHandler) ProcessMeteoAllHandler(req *http.Request) ([]byte, error) {
-	var sensors []DisplayedSensor
+	var mods []DisplayedSensor
 	data := &netdata.RestResponse{}
 
 	if req.Method != http.MethodGet {
 		return nil, errors.New("Bad request method")
 	}
 
-	for _, sensor := range m.meteo.AllSensors() {
-		mdata := sensor.MeteoData()
-
+	for _, mod := range m.meteo.AllModules() {
 		s := DisplayedSensor{
-			Name:     sensor.Name,
-			Type:     sensor.Type,
-			Temp:     mdata.Temp,
-			Humidity: mdata.Humidity,
-			Pressure: mdata.Pressure,
+			Name:     mod.Name(),
+			Type:     mod.Type(),
+			Temp:     mod.Temp(),
+			Humidity: mod.Humidity(),
+			Pressure: mod.Pressure(),
 		}
 
-		sensors = append(sensors, s)
+		mods = append(mods, s)
 	}
 
-	netdata.SetRestResponse(data, "meteo", "Meteo Station", sensors, req)
+	netdata.SetRestResponse(data, "meteo", "Meteo Station", mods, req)
 
 	jData, _ := json.Marshal(data)
 	return jData, nil
@@ -133,15 +132,14 @@ func (m *MeteoHandler) ProcessMeteoSingleHandler(sensorName string, req *http.Re
 		return nil, errors.New("Bad request method")
 	}
 
-	sensor := m.meteo.Sensor(sensorName)
-	mdata := sensor.MeteoData()
+	mod := m.meteo.Module(sensorName)
 
 	s := DisplayedSensor{
-		Name:     sensor.Name,
-		Type:     sensor.Type,
-		Temp:     mdata.Temp,
-		Humidity: mdata.Humidity,
-		Pressure: mdata.Pressure,
+		Name:     mod.Name(),
+		Type:     mod.Type(),
+		Temp:     mod.Temp(),
+		Humidity: mod.Humidity(),
+		Pressure: mod.Pressure(),
 	}
 
 	netdata.SetRestResponse(data, "meteo", "Meteo Station", s, req)

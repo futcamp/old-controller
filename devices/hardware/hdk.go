@@ -58,3 +58,12 @@ func HdkSyncHumCtrlData(ip string, status bool, humidifier bool) (*HdkModRespons
 
 	return resp, err
 }
+
+// HdkSyncTempCtrlData send cur tempctrl states to controller
+func HdkSyncTempCtrlData(ip string, status bool, heater bool) (*HdkModResponse, error) {
+	resp := &HdkModResponse{}
+
+	err := HdkHttpSyncData(ip, fmt.Sprintf("tempctrl?status=%t&heater=%t", status, heater), resp)
+
+	return resp, err
+}

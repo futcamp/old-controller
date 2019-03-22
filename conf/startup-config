@@ -19,6 +19,13 @@ humctrl threshold cab529 22
 humctrl status cab529 on
 !
 !
+tempctrl add-device cab529
+tempctrl ip cab529 127.0.0.1
+tempctrl sensor cab529 cab529
+tempctrl threshold cab529 22
+tempctrl status cab529 on
+!
+!
 display add-device house
 display ip house 127.0.0.1
 display sensors house room

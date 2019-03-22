@@ -59,6 +59,10 @@ func main() {
 	container.Provide(tasks.NewHumControlTask)
 	container.Provide(handlers.NewHumCtrlHandler)
 
+	container.Provide(devices.NewTemperatureControl)
+	container.Provide(tasks.NewTempControlTask)
+	container.Provide(handlers.NewTempCtrlHandler)
+
 	container.Provide(handlers.NewMeteoHandler)
 	container.Provide(monitoring.NewDeviceMonitor)
 	container.Provide(monitoring.NewMonitorTask)

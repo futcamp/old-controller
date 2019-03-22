@@ -28,7 +28,7 @@ import (
 )
 
 const (
-	taskDelay        = 1
+	meteoTaskDelay   = 1
 	MaxReadDelay     = 10
 	SensorErrorValue = -255
 )
@@ -40,6 +40,7 @@ type MeteoTask struct {
 	dynCfg          *configs.DynamicConfigs
 	reqTimer        *time.Timer
 	displays        *devices.MeteoDisplay
+	humCtrl         *devices.HumControl
 	sensorsCounter  int
 	databaseCounter int
 	displayCounter  int
@@ -48,12 +49,13 @@ type MeteoTask struct {
 
 // NewMeteoTask make new struct
 func NewMeteoTask(meteo *devices.MeteoStation, mdb *db.MeteoDatabase,
-	dc *configs.DynamicConfigs, disp *devices.MeteoDisplay) *MeteoTask {
+	dc *configs.DynamicConfigs, disp *devices.MeteoDisplay, hctrl *devices.HumControl) *MeteoTask {
 	return &MeteoTask{
 		meteo:           meteo,
 		meteoDB:         mdb,
 		dynCfg:          dc,
 		displays:        disp,
+		humCtrl:         hctrl,
 		sensorsCounter:  0,
 		databaseCounter: 0,
 		displayCounter:  0,
@@ -72,10 +74,9 @@ func (m *MeteoTask) TaskHandler() {
 		// Get actual data from controller
 		if m.sensorsCounter == m.dynCfg.Settings().Timers.MeteoSensorsDelay {
 			m.sensorsCounter = 0
-			mods := m.meteo.AllModules()
 
 			// Get actual data from controllers
-			for _, mod := range mods {
+			for _, mod := range m.meteo.AllModules() {
 				err := mod.SyncData()
 				if err != nil {
 					mod.SetError()
@@ -92,6 +93,11 @@ func (m *MeteoTask) TaskHandler() {
 				} else {
 					mod.ResetErrors()
 				}
+			}
+
+			// Update humidity
+			for _, mod := range m.humCtrl.AllModules() {
+				mod.SetHumidity(m.meteo.Module(mod.Sensor()).Humidity())
 			}
 		}
 
@@ -142,12 +148,12 @@ func (m *MeteoTask) TaskHandler() {
 			}
 		}
 
-		m.reqTimer.Reset(taskDelay * time.Second)
+		m.reqTimer.Reset(meteoTaskDelay * time.Second)
 	}
 }
 
 // Start start new timer
 func (m *MeteoTask) Start() {
-	m.reqTimer = time.NewTimer(taskDelay * time.Second)
+	m.reqTimer = time.NewTimer(meteoTaskDelay * time.Second)
 	m.TaskHandler()
 }

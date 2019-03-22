@@ -19,21 +19,24 @@ package modules
 
 import (
 	"fmt"
-	"github.com/futcamp/controller/devices/hardware"
+	"sync"
 
 	"github.com/futcamp/controller/devices/data"
+	"github.com/futcamp/controller/devices/hardware"
 	"github.com/futcamp/controller/utils/configs"
 
 	"github.com/google/logger"
 )
 
 type HumCtrlModule struct {
-	name   string
-	ip     string
-	sensor string
-	error  bool
-	data   data.HumCtrlData
-	dynCfg *configs.DynamicConfigs
+	name      string
+	ip        string
+	sensor    string
+	error     bool
+	update    bool
+	mtxUpdate sync.Mutex
+	data      data.HumCtrlData
+	dynCfg    *configs.DynamicConfigs
 }
 
 // NewHumCtrlModule make new struct
@@ -41,12 +44,24 @@ func NewHumCtrlModule(name string, dc *configs.DynamicConfigs) *HumCtrlModule {
 	return &HumCtrlModule{
 		name:   name,
 		dynCfg: dc,
+		update: true,
 	}
 }
 
 //
 // Simple data getters and setters
 //
+
+// Update get current update state
+func (h *HumCtrlModule) Update() bool {
+	var value bool
+
+	h.mtxUpdate.Lock()
+	value = h.update
+	h.mtxUpdate.Unlock()
+
+	return value
+}
 
 // Name get mod name
 func (h *HumCtrlModule) Name() string {
@@ -81,6 +96,13 @@ func (h *HumCtrlModule) SetSensor(sensor string) {
 // SetIP set new ip address
 func (h *HumCtrlModule) SetIP(ip string) {
 	h.ip = ip
+}
+
+// SetUpdate set new update state
+func (h *HumCtrlModule) SetUpdate(state bool) {
+	h.mtxUpdate.Lock()
+	h.update = state
+	h.mtxUpdate.Unlock()
 }
 
 //

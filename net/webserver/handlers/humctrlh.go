@@ -115,6 +115,7 @@ func (h *HumCtrlHandler) ProcessHumCtrlStatus(modName string, status bool, req *
 	// Update status state
 	mod := h.humCtrl.Module(modName)
 	mod.SetStatus(status)
+	mod.SetUpdate(true)
 
 	// Send response
 	netdata.SetRestResponse(&data, "humctrl", "Humidity Control", resp, req)
@@ -131,6 +132,7 @@ func (h *HumCtrlHandler) ProcessHumCtrlSwitchStatus(modName string, req *http.Re
 	// Update status state
 	mod := h.humCtrl.Module(modName)
 	mod.SwitchStatus()
+	mod.SetUpdate(true)
 
 	// Send response
 	netdata.SetRestResponse(&data, "humctrl", "Humidity Control", resp, req)

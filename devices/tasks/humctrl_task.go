@@ -20,25 +20,26 @@ package tasks
 import (
 	"time"
 
+	"github.com/futcamp/controller/devices"
 	"github.com/futcamp/controller/utils/configs"
 	"github.com/google/logger"
-	"github.com/futcamp/controller/devices"
+)
+
+const (
+	humTaskDelay = 500
 )
 
 // HumControlTask humidity control task struct
 type HumControlTask struct {
-	meteo    *devices.MeteoStation
 	dynCfg   *configs.DynamicConfigs
 	humCtrl  *devices.HumControl
 	reqTimer *time.Timer
 }
 
 // NewHumControlTask make new struct
-func NewHumControlTask(hctrl *devices.HumControl, meteo *devices.MeteoStation,
-	dc *configs.DynamicConfigs) *HumControlTask {
+func NewHumControlTask(hctrl *devices.HumControl, dc *configs.DynamicConfigs) *HumControlTask {
 	return &HumControlTask{
 		humCtrl: hctrl,
-		meteo:   meteo,
 		dynCfg:  dc,
 	}
 }
@@ -48,11 +49,6 @@ func (h *HumControlTask) TaskHandler() {
 	for {
 		<-h.reqTimer.C
 
-		// Update current humidity
-		for _, module := range h.humCtrl.AllModules() {
-			module.SetHumidity(h.meteo.Module(module.Sensor()).Humidity())
-		}
-
 		// SyncData data with remote devices
 		for _, module := range h.humCtrl.AllModules() {
 			// Process data
@@ -61,12 +57,14 @@ func (h *HumControlTask) TaskHandler() {
 					if !module.Humidifier() {
 						logger.Infof("HumControl current humidity \"%d\" from sensor \"%s\" less then \"%s\" threshold value \"%d\"",
 							module.Humidity(), module.Sensor(), module.Name(), module.Threshold())
+						module.SetUpdate(true)
 					}
 					module.SetHumidifier(true)
 				} else {
 					if module.Humidifier() {
 						logger.Infof("HumControl current humidity \"%d\" from sensor \"%s\" more then \"%s\" threshold value \"%d\"",
 							module.Humidity(), module.Sensor(), module.Name(), module.Threshold())
+						module.SetUpdate(true)
 					}
 					module.SetHumidifier(false)
 				}
@@ -75,28 +73,31 @@ func (h *HumControlTask) TaskHandler() {
 			}
 
 			// Sync states with module
-			err := module.SyncData()
-			if err != nil {
-				if !module.Error() {
-					module.SetError(true)
-					logger.Errorf("HumControl fail to sync data with \"%s\" module!", module.Name())
-					logger.Error(err.Error())
+			if module.Update() {
+				err := module.SyncData()
+				if err != nil {
+					if !module.Error() {
+						module.SetError(true)
+						logger.Errorf("HumControl fail to sync data with \"%s\" module!", module.Name())
+						logger.Error(err.Error())
+					}
+					continue
 				}
-				continue
-			}
-			if module.Error() {
-				module.SetError(false)
-				logger.Errorf("HumControl module \"%s\" was synced", module.Name())
+				if module.Error() {
+					module.SetError(false)
+					logger.Errorf("HumControl module \"%s\" was synced", module.Name())
+				}
+				module.SetUpdate(false)
 			}
 		}
 
-		h.reqTimer.Reset(taskDelay * time.Second)
+		h.reqTimer.Reset(humTaskDelay * time.Millisecond)
 	}
 }
 
 // Start start new timer
 func (h *HumControlTask) Start() {
 	time.Sleep(time.Duration(h.dynCfg.Settings().Timers.MeteoDBDelay+5) * time.Second)
-	h.reqTimer = time.NewTimer(taskDelay * time.Second)
+	h.reqTimer = time.NewTimer(humTaskDelay * time.Millisecond)
 	h.TaskHandler()
 }

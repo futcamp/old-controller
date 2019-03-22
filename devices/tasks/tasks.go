@@ -37,9 +37,9 @@ func NewDeviceTasks(cfg *configs.Configs, mt *MeteoTask, ht *HumControlTask) *De
 // RunTasks run all devices tasks
 func (d *DeviceTasks) RunTasks() {
 	if d.cfg.Settings().Modules.Meteo {
-		d.meteoTask.Start()
+		go d.meteoTask.Start()
 	}
 	if d.cfg.Settings().Modules.Humctrl {
-		d.hctrlTask.Start()
+		go d.hctrlTask.Start()
 	}
 }

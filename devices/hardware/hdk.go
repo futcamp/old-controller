@@ -36,7 +36,7 @@ type HdkModResponse struct {
 func HdkSyncMeteoData(ip string, channel int, sensType string) (*HdkMeteoData, error) {
 	data := &HdkMeteoData{}
 
-	err := HdkHttpSyncData(ip, fmt.Sprintf("meteo?chan=%d&type=%s", ip, channel, sensType), data)
+	err := HdkHttpSyncData(ip, fmt.Sprintf("meteo?chan=%d&type=%s", channel, sensType), data)
 
 	return data, err
 }

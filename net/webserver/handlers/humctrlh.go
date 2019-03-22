@@ -141,6 +141,22 @@ func (h *HumCtrlHandler) ProcessHumCtrlSwitchStatus(modName string, req *http.Re
 	return jData, nil
 }
 
+// ProcessHumCtrlSync sync current states with remote module
+func (h *HumCtrlHandler) ProcessHumCtrlSync(modName string, req *http.Request) ([]byte, error) {
+	var data netdata.RestResponse
+	var resp ResultResponse
+
+	// Update status state
+	mod := h.humCtrl.Module(modName)
+	mod.SetUpdate(true)
+
+	// Send response
+	netdata.SetRestResponse(&data, "humctrl", "Humidity Control", resp, req)
+
+	jData, _ := json.Marshal(&data)
+	return jData, nil
+}
+
 // ProcessHumCtrlThreshold set new hum control threshold for single mod
 func (h *HumCtrlHandler) ProcessHumCtrlThreshold(modName string, plus bool, req *http.Request) ([]byte, error) {
 	var data netdata.RestResponse

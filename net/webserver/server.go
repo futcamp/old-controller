@@ -218,11 +218,11 @@ func (w *WebServer) HumCtrlHandler(writer http.ResponseWriter, req *http.Request
 				return
 
 			default:
-				resp.SendFail("Bad request")
+				resp.SendFail("Bad status request")
 				return
 			}
 		} else {
-			resp.SendFail("Bad request")
+			resp.SendFail("Bad status request")
 			return
 		}
 	}
@@ -253,16 +253,38 @@ func (w *WebServer) HumCtrlHandler(writer http.ResponseWriter, req *http.Request
 					break
 
 				default:
-					resp.SendFail("Bad request")
+					resp.SendFail("Bad threshold request")
 					break
 				}
 				return
 			} else {
-				resp.SendFail("Bad request")
+				resp.SendFail("Bad threshold request")
 				return
 			}
 		} else {
-			resp.SendFail("Bad request method")
+			resp.SendFail("Bad threshold request method")
+			return
+		}
+	}
+
+	// Sync states with remote module
+	if len(args) == 6 && args[5] != "" {
+		if req.Method == "PUT" {
+			if args[5] == "sync" {
+				data, err := w.humCtrlHdl.ProcessHumCtrlSync(args[4], req)
+				if err != nil {
+					logger.Error(err.Error())
+					resp.SendFail(err.Error())
+					return
+				}
+				resp.Send(string(data))
+				return
+			} else {
+				resp.SendFail("Bad sync request")
+				return
+			}
+		} else {
+			resp.SendFail("Bad sync request method")
 			return
 		}
 	}

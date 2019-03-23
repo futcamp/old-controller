@@ -30,11 +30,9 @@ type HumCtrlData struct {
 	mtxHumfier sync.Mutex
 }
 
-
 //
 // Data getters
 //
-
 
 // Threshold get current threshold value
 func (h *HumCtrlData) Threshold() int {
@@ -80,11 +78,9 @@ func (h *HumCtrlData) Humidifier() bool {
 	return value
 }
 
-
 //
 // Data setters
 //
-
 
 // SetThreshold set new threshold value
 func (h *HumCtrlData) SetThreshold(value int) {

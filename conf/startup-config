@@ -26,6 +26,12 @@ tempctrl threshold cab529 22
 tempctrl status cab529 on
 !
 !
+light add-device room
+light ip room 127.0.0.1
+light channel room 0
+light status room off
+!
+!
 display add-device house
 display ip house 127.0.0.1
 display sensors house room

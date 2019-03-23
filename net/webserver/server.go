@@ -35,27 +35,30 @@ const (
 )
 
 type WebServer struct {
-	cfg        *configs.Configs
-	meteo      *devices.MeteoStation
-	meteoHdl   *handlers.MeteoHandler
-	logHdl     *handlers.LogHandler
-	monitorHdl *handlers.MonitorHandler
-	humCtrlHdl *handlers.HumCtrlHandler
+	cfg         *configs.Configs
+	meteo       *devices.MeteoStation
+	meteoHdl    *handlers.MeteoHandler
+	logHdl      *handlers.LogHandler
+	monitorHdl  *handlers.MonitorHandler
+	humCtrlHdl  *handlers.HumCtrlHandler
 	tempCtrlHdl *handlers.TempCtrlHandler
+	lightHdl    *handlers.LightHandler
 }
 
 // NewWebServer make new struct
 func NewWebServer(cfg *configs.Configs, meteo *devices.MeteoStation, mh *handlers.MeteoHandler,
 	lh *handlers.LogHandler, mnh *handlers.MonitorHandler,
-	hch *handlers.HumCtrlHandler, tch *handlers.TempCtrlHandler) *WebServer {
+	hch *handlers.HumCtrlHandler, tch *handlers.TempCtrlHandler,
+	lgh *handlers.LightHandler) *WebServer {
 	return &WebServer{
-		cfg:        cfg,
-		meteo:      meteo,
-		meteoHdl:   mh,
-		logHdl:     lh,
-		monitorHdl: mnh,
-		humCtrlHdl: hch,
-		tempCtrlHdl:tch,
+		cfg:         cfg,
+		meteo:       meteo,
+		meteoHdl:    mh,
+		logHdl:      lh,
+		monitorHdl:  mnh,
+		humCtrlHdl:  hch,
+		tempCtrlHdl: tch,
+		lightHdl:    lgh,
 	}
 }
 
@@ -74,6 +77,9 @@ func (w *WebServer) Start(ip string, port int) error {
 	}
 	if w.cfg.Settings().Modules.Tempctrl {
 		mux.HandleFunc(fmt.Sprintf("/api/%s/tempctrl/", configs.ApiVersion), w.TempCtrlHandler)
+	}
+	if w.cfg.Settings().Modules.Light {
+		mux.HandleFunc(fmt.Sprintf("/api/%s/light/", configs.ApiVersion), w.LightHandler)
 	}
 
 	server := &http.Server{
@@ -442,6 +448,100 @@ func (w *WebServer) TempCtrlHandler(writer http.ResponseWriter, req *http.Reques
 
 	// Get all tempctrl devices data
 	data, err := w.tempCtrlHdl.ProcessTempCtrlAllHandler(req)
+	if err != nil {
+		logger.Error(err.Error())
+		resp.SendFail(err.Error())
+		return
+	}
+	resp.Send(string(data))
+	return
+}
+
+// LightHandler light requests handler
+func (w *WebServer) LightHandler(writer http.ResponseWriter, req *http.Request) {
+	resp := NewResponse(&writer, configs.AppName)
+	args := strings.Split(req.RequestURI, "/")
+
+	// Change status
+	if len(args) == 7 && args[5] == "status" && args[6] != "" {
+		if req.Method == "PUT" {
+			switch args[6] {
+			case "on":
+				data, err := w.lightHdl.ProcessLightStatus(args[4], true, req)
+				if err != nil {
+					logger.Error(err.Error())
+					resp.SendFail(err.Error())
+					return
+				}
+				resp.Send(string(data))
+				return
+
+			case "off":
+				data, err := w.lightHdl.ProcessLightStatus(args[4], false, req)
+				if err != nil {
+					logger.Error(err.Error())
+					resp.SendFail(err.Error())
+					return
+				}
+				resp.Send(string(data))
+				return
+
+			case "switch":
+				data, err := w.lightHdl.ProcessLightSwitchStatus(args[4], req)
+				if err != nil {
+					logger.Error(err.Error())
+					resp.SendFail(err.Error())
+					return
+				}
+				resp.Send(string(data))
+				return
+
+			default:
+				resp.SendFail("Bad status request")
+				return
+			}
+		} else {
+			resp.SendFail("Bad status request")
+			return
+		}
+	}
+
+	// Sync states with remote module
+	if len(args) == 6 && args[5] != "" {
+		if req.Method == "PUT" {
+			if args[5] == "sync" {
+				data, err := w.lightHdl.ProcessLightSync(args[4], req)
+				if err != nil {
+					logger.Error(err.Error())
+					resp.SendFail(err.Error())
+					return
+				}
+				resp.Send(string(data))
+				return
+			} else {
+				resp.SendFail("Bad sync request")
+				return
+			}
+		} else {
+			resp.SendFail("Bad sync request method")
+			return
+		}
+	}
+
+	// Get single mod data
+	if len(args) == 5 && args[4] != "" {
+		data, err := w.lightHdl.ProcessLightSingleHandler(args[4], req)
+		if err != nil {
+			logger.Error(err.Error())
+			resp.SendFail(err.Error())
+			return
+		}
+		resp.Send(string(data))
+		return
+	}
+
+	// Get all light devices data
+	data, err := w.lightHdl.ProcessLightAllHandler(req)
 	if err != nil {
 		logger.Error(err.Error())
 		resp.SendFail(err.Error())

@@ -28,7 +28,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-type DisplayedModule struct {
+type DisplayedHumModule struct {
 	Name       string `json:"name"`
 	Sensor     string `json:"sensor"`
 	Humidity   int    `json:"temp"`
@@ -56,7 +56,7 @@ func NewHumCtrlHandler(hc *devices.HumControl, dc *configs.DynamicConfigs) *HumC
 
 // ProcessHumCtrlAllHandler display actual hum control data for all devices
 func (h *HumCtrlHandler) ProcessHumCtrlAllHandler(req *http.Request) ([]byte, error) {
-	var mods []DisplayedModule
+	var mods []DisplayedHumModule
 	data := &netdata.RestResponse{}
 
 	if req.Method != http.MethodGet {
@@ -64,7 +64,7 @@ func (h *HumCtrlHandler) ProcessHumCtrlAllHandler(req *http.Request) ([]byte, er
 	}
 
 	for _, mod := range h.humCtrl.AllModules() {
-		m := DisplayedModule{
+		m := DisplayedHumModule{
 			Name:       mod.Name(),
 			Sensor:     mod.Sensor(),
 			Humidity:   mod.Humidity(),
@@ -92,7 +92,7 @@ func (h *HumCtrlHandler) ProcessHumCtrlSingleHandler(modName string, req *http.R
 
 	mod := h.humCtrl.Module(modName)
 
-	m := DisplayedModule{
+	m := DisplayedHumModule{
 		Name:       mod.Name(),
 		Sensor:     mod.Sensor(),
 		Humidity:   mod.Humidity(),
@@ -164,7 +164,7 @@ func (h *HumCtrlHandler) ProcessHumCtrlThreshold(modName string, plus bool, req 
 
 	// Update threshold value
 	mod := h.humCtrl.Module(modName)
-	thresh := (*mod).Threshold()
+	thresh := mod.Threshold()
 	if plus {
 		thresh++
 	} else {

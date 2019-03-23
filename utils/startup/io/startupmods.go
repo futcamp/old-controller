@@ -42,13 +42,15 @@ type StartupMods struct {
 	devMonitor *monitoring.DeviceMonitor
 	humCtrl    *devices.HumControl
 	meteoLCD   *devices.MeteoDisplay
+	tempCtrl   *devices.TempControl
 }
 
 // NewStartupMods make new struct
 func NewStartupMods(io *StartupIO, dc *configs.DynamicConfigs,
 	meteo *devices.MeteoStation, ntf *notifier.Notifier,
 	mon *monitoring.DeviceMonitor, cfg *configs.Configs,
-	hctrl *devices.HumControl, mlcd *devices.MeteoDisplay) *StartupMods {
+	hctrl *devices.HumControl, mlcd *devices.MeteoDisplay,
+	tctrl *devices.TempControl) *StartupMods {
 	return &StartupMods{
 		io:         io,
 		dynCfg:     dc,
@@ -58,6 +60,7 @@ func NewStartupMods(io *StartupIO, dc *configs.DynamicConfigs,
 		cfg:        cfg,
 		humCtrl:    hctrl,
 		meteoLCD:   mlcd,
+		tempCtrl:   tctrl,
 	}
 }
 
@@ -120,6 +123,12 @@ func (s *StartupMods) DeleteModCommand(fileName string, module string, cmd strin
 			}
 			break
 
+		case "tempctrl":
+			if s.cfg.Settings().Modules.Tempctrl {
+				s.tempCtrl.DeleteModule(dev)
+			}
+			break
+
 		case "display":
 			s.meteoLCD.DeleteDisplay(dev)
 			break
@@ -163,6 +172,12 @@ func (s *StartupMods) applyConfigs(module string, cmd string, dev string, args [
 	case "humctrl":
 		if s.cfg.Settings().Modules.Humctrl {
 			s.applyHumCtrlCfg(cmd, dev, args)
+		}
+		break
+
+	case "tempctrl":
+		if s.cfg.Settings().Modules.Tempctrl {
+			s.applyTempCtrlCfg(cmd, dev, args)
 		}
 		break
 
@@ -314,6 +329,53 @@ func (s *StartupMods) applyHumCtrlCfg(cmd string, dev string, args []string) err
 	return nil
 }
 
+// applyTempCtrlCfg apply commands for tempctrl mod
+func (s *StartupMods) applyTempCtrlCfg(cmd string, dev string, args []string) error {
+	switch cmd {
+	case "add-device":
+		mod := modules.NewTempCtrlModule(dev, s.dynCfg)
+		s.tempCtrl.AddModule(dev, mod)
+		logger.Infof("TempControl add new device \"%s\"", dev)
+		break
+
+	case "ip":
+		mod := s.tempCtrl.Module(dev)
+		mod.SetIP(args[0])
+		logger.Infof("TempControl set ip address \"%s\" for device \"%s\"", mod.IP(), dev)
+		break
+
+	case "sensor":
+		mod := s.tempCtrl.Module(dev)
+		mod.SetSensor(args[0])
+		logger.Infof("TempControl set sensor \"%s\" for device \"%s\"", mod.Sensor(), dev)
+		break
+
+	case "status":
+		mod := s.tempCtrl.Module(dev)
+		if args[0] == "on" {
+			mod.SetStatus(true)
+		} else {
+			mod.SetStatus(false)
+		}
+		logger.Infof("TempControl set status \"%s\" for device \"%s\"", args[0], dev)
+		break
+
+	case "threshold":
+		threshold, err := strconv.Atoi(args[0])
+		if err != nil {
+			logger.Infof("TempControl fail to convert threshold value for device \"%s\"", dev)
+			break
+		}
+
+		mod := s.tempCtrl.Module(dev)
+		mod.SetThreshold(threshold)
+		logger.Infof("TempControl set threshold \"%d\" for device \"%s\"", threshold, dev)
+		break
+	}
+
+	return nil
+}
+
 // applyTimerCfg apply commands for timers
 func (s *StartupMods) applyTimerCfg(cmd string, dev string, args []string) error {
 	delay, err := strconv.Atoi(args[0])
@@ -402,6 +464,18 @@ func (s *StartupMods) applyMonitorCfg(cmd string, dev string, args []string) err
 				}
 				mod := s.humCtrl.Module(device)
 				s.devMonitor.AddDevice(mod.Name(), "humctrl", mod.IP())
+				logger.Infof("Monitor add new device from mod \"%s\" mod \"%s\" for monitor \"%s\"",
+					args[0], mod.Name(), dev)
+			}
+			break
+
+		case "tempctrl":
+			for i, device := range args {
+				if i == 0 {
+					continue
+				}
+				mod := s.tempCtrl.Module(device)
+				s.devMonitor.AddDevice(mod.Name(), "tempctrl", mod.IP())
 				logger.Infof("Monitor add new device from mod \"%s\" mod \"%s\" for monitor \"%s\"",
 					args[0], mod.Name(), dev)
 			}

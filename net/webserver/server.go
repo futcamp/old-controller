@@ -41,12 +41,13 @@ type WebServer struct {
 	logHdl     *handlers.LogHandler
 	monitorHdl *handlers.MonitorHandler
 	humCtrlHdl *handlers.HumCtrlHandler
+	tempCtrlHdl *handlers.TempCtrlHandler
 }
 
 // NewWebServer make new struct
 func NewWebServer(cfg *configs.Configs, meteo *devices.MeteoStation, mh *handlers.MeteoHandler,
 	lh *handlers.LogHandler, mnh *handlers.MonitorHandler,
-	hch *handlers.HumCtrlHandler) *WebServer {
+	hch *handlers.HumCtrlHandler, tch *handlers.TempCtrlHandler) *WebServer {
 	return &WebServer{
 		cfg:        cfg,
 		meteo:      meteo,
@@ -54,6 +55,7 @@ func NewWebServer(cfg *configs.Configs, meteo *devices.MeteoStation, mh *handler
 		logHdl:     lh,
 		monitorHdl: mnh,
 		humCtrlHdl: hch,
+		tempCtrlHdl:tch,
 	}
 }
 
@@ -69,6 +71,9 @@ func (w *WebServer) Start(ip string, port int) error {
 	}
 	if w.cfg.Settings().Modules.Humctrl {
 		mux.HandleFunc(fmt.Sprintf("/api/%s/humctrl/", configs.ApiVersion), w.HumCtrlHandler)
+	}
+	if w.cfg.Settings().Modules.Tempctrl {
+		mux.HandleFunc(fmt.Sprintf("/api/%s/tempctrl/", configs.ApiVersion), w.TempCtrlHandler)
 	}
 
 	server := &http.Server{
@@ -303,6 +308,140 @@ func (w *WebServer) HumCtrlHandler(writer http.ResponseWriter, req *http.Request
 
 	// Get all humctrl devices data
 	data, err := w.humCtrlHdl.ProcessHumCtrlAllHandler(req)
+	if err != nil {
+		logger.Error(err.Error())
+		resp.SendFail(err.Error())
+		return
+	}
+	resp.Send(string(data))
+	return
+}
+
+// TempCtrlHandler temp control requests handler
+func (w *WebServer) TempCtrlHandler(writer http.ResponseWriter, req *http.Request) {
+	resp := NewResponse(&writer, configs.AppName)
+	args := strings.Split(req.RequestURI, "/")
+
+	// Change status
+	if len(args) == 7 && args[5] == "status" && args[6] != "" {
+		if req.Method == "PUT" {
+			switch args[6] {
+			case "on":
+				data, err := w.tempCtrlHdl.ProcessTempCtrlStatus(args[4], true, req)
+				if err != nil {
+					logger.Error(err.Error())
+					resp.SendFail(err.Error())
+					return
+				}
+				resp.Send(string(data))
+				return
+
+			case "off":
+				data, err := w.tempCtrlHdl.ProcessTempCtrlStatus(args[4], false, req)
+				if err != nil {
+					logger.Error(err.Error())
+					resp.SendFail(err.Error())
+					return
+				}
+				resp.Send(string(data))
+				return
+
+			case "switch":
+				data, err := w.tempCtrlHdl.ProcessTempCtrlSwitchStatus(args[4], req)
+				if err != nil {
+					logger.Error(err.Error())
+					resp.SendFail(err.Error())
+					return
+				}
+				resp.Send(string(data))
+				return
+
+			default:
+				resp.SendFail("Bad status request")
+				return
+			}
+		} else {
+			resp.SendFail("Bad status request")
+			return
+		}
+	}
+
+	// Change threshold
+	if len(args) == 7 && args[5] == "threshold" && args[6] != "" {
+		if req.Method == "PUT" {
+			if args[5] == "threshold" {
+				switch args[6] {
+				case "plus":
+					data, err := w.tempCtrlHdl.ProcessTempCtrlThreshold(args[4], true, req)
+					if err != nil {
+						logger.Error(err.Error())
+						resp.SendFail(err.Error())
+						return
+					}
+					resp.Send(string(data))
+					return
+
+				case "minus":
+					data, err := w.tempCtrlHdl.ProcessTempCtrlThreshold(args[4], false, req)
+					if err != nil {
+						logger.Error(err.Error())
+						resp.SendFail(err.Error())
+						return
+					}
+					resp.Send(string(data))
+					break
+
+				default:
+					resp.SendFail("Bad threshold request")
+					break
+				}
+				return
+			} else {
+				resp.SendFail("Bad threshold request")
+				return
+			}
+		} else {
+			resp.SendFail("Bad threshold request method")
+			return
+		}
+	}
+
+	// Sync states with remote module
+	if len(args) == 6 && args[5] != "" {
+		if req.Method == "PUT" {
+			if args[5] == "sync" {
+				data, err := w.tempCtrlHdl.ProcessTempCtrlSync(args[4], req)
+				if err != nil {
+					logger.Error(err.Error())
+					resp.SendFail(err.Error())
+					return
+				}
+				resp.Send(string(data))
+				return
+			} else {
+				resp.SendFail("Bad sync request")
+				return
+			}
+		} else {
+			resp.SendFail("Bad sync request method")
+			return
+		}
+	}
+
+	// Get single mod data
+	if len(args) == 5 && args[4] != "" {
+		data, err := w.tempCtrlHdl.ProcessTempCtrlSingleHandler(args[4], req)
+		if err != nil {
+			logger.Error(err.Error())
+			resp.SendFail(err.Error())
+			return
+		}
+		resp.Send(string(data))
+		return
+	}
+
+	// Get all tempctrl devices data
+	data, err := w.tempCtrlHdl.ProcessTempCtrlAllHandler(req)
 	if err != nil {
 		logger.Error(err.Error())
 		resp.SendFail(err.Error())

@@ -33,6 +33,7 @@ type ModCfg struct {
 	Meteo    bool
 	Humctrl  bool
 	Tempctrl bool
+	Light    bool
 }
 
 type ServerCfg struct {

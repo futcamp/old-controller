@@ -67,3 +67,12 @@ func HdkSyncTempCtrlData(ip string, status bool, heater bool) (*HdkModResponse, 
 
 	return resp, err
 }
+
+// HdkSyncLightData send cur light states to controller
+func HdkSyncLightData(ip string, channel int, status bool) (*HdkModResponse, error) {
+	resp := &HdkModResponse{}
+
+	err := HdkHttpSyncData(ip, fmt.Sprintf("light?chan=%d&status=%t", channel, status), resp)
+
+	return resp, err
+}

@@ -24,16 +24,18 @@ type DeviceTasks struct {
 	meteoTask *MeteoTask
 	hctrlTask *HumControlTask
 	tctrlTask *TempControlTask
+	lightTask *LightlTask
 }
 
 // NewDeviceTasks make new struct
 func NewDeviceTasks(cfg *configs.Configs, mt *MeteoTask, ht *HumControlTask,
-	tt *TempControlTask) *DeviceTasks {
+	tt *TempControlTask, lght *LightlTask) *DeviceTasks {
 	return &DeviceTasks{
 		cfg:       cfg,
 		meteoTask: mt,
 		hctrlTask: ht,
-		tctrlTask:tt,
+		tctrlTask: tt,
+		lightTask: lght,
 	}
 }
 
@@ -47,5 +49,8 @@ func (d *DeviceTasks) RunTasks() {
 	}
 	if d.cfg.Settings().Modules.Tempctrl {
 		go d.tctrlTask.Start()
+	}
+	if d.cfg.Settings().Modules.Light {
+		go d.lightTask.Start()
 	}
 }

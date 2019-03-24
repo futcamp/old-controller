@@ -199,33 +199,33 @@ func (w *WebServer) HumCtrlHandler(writer http.ResponseWriter, req *http.Request
 		if req.Method == "PUT" {
 			switch args[6] {
 			case "on":
-				data, err := w.humCtrlHdl.ProcessHumCtrlStatus(args[4], true, req)
+				err := w.humCtrlHdl.ProcessHumCtrlStatus(args[4], true, req)
 				if err != nil {
 					logger.Error(err.Error())
 					resp.SendFail(err.Error())
 					return
 				}
-				resp.Send(string(data))
+				resp.SendOk()
 				return
 
 			case "off":
-				data, err := w.humCtrlHdl.ProcessHumCtrlStatus(args[4], false, req)
+				err := w.humCtrlHdl.ProcessHumCtrlStatus(args[4], false, req)
 				if err != nil {
 					logger.Error(err.Error())
 					resp.SendFail(err.Error())
 					return
 				}
-				resp.Send(string(data))
+				resp.SendOk()
 				return
 
 			case "switch":
-				data, err := w.humCtrlHdl.ProcessHumCtrlSwitchStatus(args[4], req)
+				err := w.humCtrlHdl.ProcessHumCtrlSwitchStatus(args[4], req)
 				if err != nil {
 					logger.Error(err.Error())
 					resp.SendFail(err.Error())
 					return
 				}
-				resp.Send(string(data))
+				resp.SendOk()
 				return
 
 			default:
@@ -244,23 +244,23 @@ func (w *WebServer) HumCtrlHandler(writer http.ResponseWriter, req *http.Request
 			if args[5] == "threshold" {
 				switch args[6] {
 				case "plus":
-					data, err := w.humCtrlHdl.ProcessHumCtrlThreshold(args[4], true, req)
+					err := w.humCtrlHdl.ProcessHumCtrlThreshold(args[4], true, req)
 					if err != nil {
 						logger.Error(err.Error())
 						resp.SendFail(err.Error())
 						return
 					}
-					resp.Send(string(data))
+					resp.SendOk()
 					return
 
 				case "minus":
-					data, err := w.humCtrlHdl.ProcessHumCtrlThreshold(args[4], false, req)
+					err := w.humCtrlHdl.ProcessHumCtrlThreshold(args[4], false, req)
 					if err != nil {
 						logger.Error(err.Error())
 						resp.SendFail(err.Error())
 						return
 					}
-					resp.Send(string(data))
+					resp.SendOk()
 					break
 
 				default:
@@ -282,13 +282,13 @@ func (w *WebServer) HumCtrlHandler(writer http.ResponseWriter, req *http.Request
 	if len(args) == 6 && args[5] != "" {
 		if req.Method == "PUT" {
 			if args[5] == "sync" {
-				data, err := w.humCtrlHdl.ProcessHumCtrlSync(args[4], req)
+				err := w.humCtrlHdl.ProcessHumCtrlSync(args[4], req)
 				if err != nil {
 					logger.Error(err.Error())
 					resp.SendFail(err.Error())
 					return
 				}
-				resp.Send(string(data))
+				resp.SendOk()
 				return
 			} else {
 				resp.SendFail("Bad sync request")
@@ -333,33 +333,33 @@ func (w *WebServer) TempCtrlHandler(writer http.ResponseWriter, req *http.Reques
 		if req.Method == "PUT" {
 			switch args[6] {
 			case "on":
-				data, err := w.tempCtrlHdl.ProcessTempCtrlStatus(args[4], true, req)
+				err := w.tempCtrlHdl.ProcessTempCtrlStatus(args[4], true, req)
 				if err != nil {
 					logger.Error(err.Error())
 					resp.SendFail(err.Error())
 					return
 				}
-				resp.Send(string(data))
+				resp.SendOk()
 				return
 
 			case "off":
-				data, err := w.tempCtrlHdl.ProcessTempCtrlStatus(args[4], false, req)
+				err := w.tempCtrlHdl.ProcessTempCtrlStatus(args[4], false, req)
 				if err != nil {
 					logger.Error(err.Error())
 					resp.SendFail(err.Error())
 					return
 				}
-				resp.Send(string(data))
+				resp.SendOk()
 				return
 
 			case "switch":
-				data, err := w.tempCtrlHdl.ProcessTempCtrlSwitchStatus(args[4], req)
+				err := w.tempCtrlHdl.ProcessTempCtrlSwitchStatus(args[4], req)
 				if err != nil {
 					logger.Error(err.Error())
 					resp.SendFail(err.Error())
 					return
 				}
-				resp.Send(string(data))
+				resp.SendOk()
 				return
 
 			default:
@@ -378,23 +378,23 @@ func (w *WebServer) TempCtrlHandler(writer http.ResponseWriter, req *http.Reques
 			if args[5] == "threshold" {
 				switch args[6] {
 				case "plus":
-					data, err := w.tempCtrlHdl.ProcessTempCtrlThreshold(args[4], true, req)
+					err := w.tempCtrlHdl.ProcessTempCtrlThreshold(args[4], true, req)
 					if err != nil {
 						logger.Error(err.Error())
 						resp.SendFail(err.Error())
 						return
 					}
-					resp.Send(string(data))
+					resp.SendOk()
 					return
 
 				case "minus":
-					data, err := w.tempCtrlHdl.ProcessTempCtrlThreshold(args[4], false, req)
+					err := w.tempCtrlHdl.ProcessTempCtrlThreshold(args[4], false, req)
 					if err != nil {
 						logger.Error(err.Error())
 						resp.SendFail(err.Error())
 						return
 					}
-					resp.Send(string(data))
+					resp.SendOk()
 					break
 
 				default:
@@ -416,13 +416,13 @@ func (w *WebServer) TempCtrlHandler(writer http.ResponseWriter, req *http.Reques
 	if len(args) == 6 && args[5] != "" {
 		if req.Method == "PUT" {
 			if args[5] == "sync" {
-				data, err := w.tempCtrlHdl.ProcessTempCtrlSync(args[4], req)
+				err := w.tempCtrlHdl.ProcessTempCtrlSync(args[4], req)
 				if err != nil {
 					logger.Error(err.Error())
 					resp.SendFail(err.Error())
 					return
 				}
-				resp.Send(string(data))
+				resp.SendOk()
 				return
 			} else {
 				resp.SendFail("Bad sync request")
@@ -467,33 +467,33 @@ func (w *WebServer) LightHandler(writer http.ResponseWriter, req *http.Request) 
 		if req.Method == "PUT" {
 			switch args[6] {
 			case "on":
-				data, err := w.lightHdl.ProcessLightStatus(args[4], true, req)
+				err := w.lightHdl.ProcessLightStatus(args[4], true, req)
 				if err != nil {
 					logger.Error(err.Error())
 					resp.SendFail(err.Error())
 					return
 				}
-				resp.Send(string(data))
+				resp.SendOk()
 				return
 
 			case "off":
-				data, err := w.lightHdl.ProcessLightStatus(args[4], false, req)
+				err := w.lightHdl.ProcessLightStatus(args[4], false, req)
 				if err != nil {
 					logger.Error(err.Error())
 					resp.SendFail(err.Error())
 					return
 				}
-				resp.Send(string(data))
+				resp.SendOk()
 				return
 
 			case "switch":
-				data, err := w.lightHdl.ProcessLightSwitchStatus(args[4], req)
+				err := w.lightHdl.ProcessLightSwitchStatus(args[4], req)
 				if err != nil {
 					logger.Error(err.Error())
 					resp.SendFail(err.Error())
 					return
 				}
-				resp.Send(string(data))
+				resp.SendOk()
 				return
 
 			default:
@@ -510,13 +510,13 @@ func (w *WebServer) LightHandler(writer http.ResponseWriter, req *http.Request) 
 	if len(args) == 6 && args[5] != "" {
 		if req.Method == "PUT" {
 			if args[5] == "sync" {
-				data, err := w.lightHdl.ProcessLightSync(args[4], req)
+				err := w.lightHdl.ProcessLightSync(args[4], req)
 				if err != nil {
 					logger.Error(err.Error())
 					resp.SendFail(err.Error())
 					return
 				}
-				resp.Send(string(data))
+				resp.SendOk()
 				return
 			} else {
 				resp.SendFail("Bad sync request")

@@ -104,60 +104,36 @@ func (t *TempCtrlHandler) ProcessTempCtrlSingleHandler(modName string, req *http
 }
 
 // ProcessTempCtrlStatus set new temp control status for single mod
-func (t *TempCtrlHandler) ProcessTempCtrlStatus(modName string, status bool, req *http.Request) ([]byte, error) {
-	var data netdata.RestResponse
-	var resp ResultResponse
-
+func (t *TempCtrlHandler) ProcessTempCtrlStatus(modName string, status bool, req *http.Request) error {
 	// Update status state
 	mod := t.tempCtrl.Module(modName)
 	mod.SetStatus(status)
 	mod.SetUpdate(true)
 
-	// Send response
-	netdata.SetRestResponse(&data, "tempctrl", "Temperature Control", resp, req)
-
-	jData, _ := json.Marshal(&data)
-	return jData, nil
+	return nil
 }
 
 // ProcessTempCtrlSwitchStatus switch current temp control status for single mod
-func (t *TempCtrlHandler) ProcessTempCtrlSwitchStatus(modName string, req *http.Request) ([]byte, error) {
-	var data netdata.RestResponse
-	var resp ResultResponse
-
+func (t *TempCtrlHandler) ProcessTempCtrlSwitchStatus(modName string, req *http.Request) error {
 	// Update status state
 	mod := t.tempCtrl.Module(modName)
 	mod.SwitchStatus()
 	mod.SetUpdate(true)
 
-	// Send response
-	netdata.SetRestResponse(&data, "tempctrl", "Temperature Control", resp, req)
-
-	jData, _ := json.Marshal(&data)
-	return jData, nil
+	return nil
 }
 
 // ProcessTempCtrlSync sync current states with remote module
-func (t *TempCtrlHandler) ProcessTempCtrlSync(modName string, req *http.Request) ([]byte, error) {
-	var data netdata.RestResponse
-	var resp ResultResponse
-
+func (t *TempCtrlHandler) ProcessTempCtrlSync(modName string, req *http.Request) error {
 	// Update status state
 	mod := t.tempCtrl.Module(modName)
 	mod.SetUpdate(true)
 
-	// Send response
-	netdata.SetRestResponse(&data, "tempctrl", "Temperature Control", resp, req)
-
-	jData, _ := json.Marshal(&data)
-	return jData, nil
+	return nil
 }
 
 // ProcessTempCtrlThreshold set new temp control threshold for single mod
-func (t *TempCtrlHandler) ProcessTempCtrlThreshold(modName string, plus bool, req *http.Request) ([]byte, error) {
-	var data netdata.RestResponse
-	var resp ResultResponse
-
+func (t *TempCtrlHandler) ProcessTempCtrlThreshold(modName string, plus bool, req *http.Request) error {
 	// Update threshold value
 	mod := t.tempCtrl.Module(modName)
 	thresh := mod.Threshold()
@@ -168,9 +144,5 @@ func (t *TempCtrlHandler) ProcessTempCtrlThreshold(modName string, plus bool, re
 	}
 	mod.SetThreshold(thresh)
 
-	// Send response
-	netdata.SetRestResponse(&data, "tempctrl", "Temperature Control", resp, req)
-
-	jData, _ := json.Marshal(&data)
-	return jData, nil
+	return nil
 }

@@ -108,60 +108,36 @@ func (h *HumCtrlHandler) ProcessHumCtrlSingleHandler(modName string, req *http.R
 }
 
 // ProcessHumCtrlStatus set new hum control status for single mod
-func (h *HumCtrlHandler) ProcessHumCtrlStatus(modName string, status bool, req *http.Request) ([]byte, error) {
-	var data netdata.RestResponse
-	var resp ResultResponse
-
+func (h *HumCtrlHandler) ProcessHumCtrlStatus(modName string, status bool, req *http.Request) error {
 	// Update status state
 	mod := h.humCtrl.Module(modName)
 	mod.SetStatus(status)
 	mod.SetUpdate(true)
 
-	// Send response
-	netdata.SetRestResponse(&data, "humctrl", "Humidity Control", resp, req)
-
-	jData, _ := json.Marshal(&data)
-	return jData, nil
+	return nil
 }
 
 // ProcessHumCtrlSwitchStatus switch current hum control status for single mod
-func (h *HumCtrlHandler) ProcessHumCtrlSwitchStatus(modName string, req *http.Request) ([]byte, error) {
-	var data netdata.RestResponse
-	var resp ResultResponse
-
+func (h *HumCtrlHandler) ProcessHumCtrlSwitchStatus(modName string, req *http.Request) error {
 	// Update status state
 	mod := h.humCtrl.Module(modName)
 	mod.SwitchStatus()
 	mod.SetUpdate(true)
 
-	// Send response
-	netdata.SetRestResponse(&data, "humctrl", "Humidity Control", resp, req)
-
-	jData, _ := json.Marshal(&data)
-	return jData, nil
+	return nil
 }
 
 // ProcessHumCtrlSync sync current states with remote module
-func (h *HumCtrlHandler) ProcessHumCtrlSync(modName string, req *http.Request) ([]byte, error) {
-	var data netdata.RestResponse
-	var resp ResultResponse
-
+func (h *HumCtrlHandler) ProcessHumCtrlSync(modName string, req *http.Request) error {
 	// Update status state
 	mod := h.humCtrl.Module(modName)
 	mod.SetUpdate(true)
 
-	// Send response
-	netdata.SetRestResponse(&data, "humctrl", "Humidity Control", resp, req)
-
-	jData, _ := json.Marshal(&data)
-	return jData, nil
+	return nil
 }
 
 // ProcessHumCtrlThreshold set new hum control threshold for single mod
-func (h *HumCtrlHandler) ProcessHumCtrlThreshold(modName string, plus bool, req *http.Request) ([]byte, error) {
-	var data netdata.RestResponse
-	var resp ResultResponse
-
+func (h *HumCtrlHandler) ProcessHumCtrlThreshold(modName string, plus bool, req *http.Request) error {
 	// Update threshold value
 	mod := h.humCtrl.Module(modName)
 	thresh := mod.Threshold()
@@ -172,9 +148,5 @@ func (h *HumCtrlHandler) ProcessHumCtrlThreshold(modName string, plus bool, req 
 	}
 	mod.SetThreshold(thresh)
 
-	// Send response
-	netdata.SetRestResponse(&data, "humctrl", "Humidity Control", resp, req)
-
-	jData, _ := json.Marshal(&data)
-	return jData, nil
+	return nil
 }

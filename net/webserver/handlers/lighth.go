@@ -47,7 +47,7 @@ func NewLightHandler(lgh *devices.Light, dc *configs.DynamicConfigs) *LightHandl
 }
 
 // ProcessLightAllHandler display actual light data for all devices
-func (h *LightHandler) ProcessLightAllHandler(req *http.Request) ([]byte, error) {
+func (l *LightHandler) ProcessLightAllHandler(req *http.Request) ([]byte, error) {
 	var mods []DisplayedLightModule
 	data := &netdata.RestResponse{}
 
@@ -55,7 +55,7 @@ func (h *LightHandler) ProcessLightAllHandler(req *http.Request) ([]byte, error)
 		return nil, errors.New("Bad request method")
 	}
 
-	for _, mod := range h.light.AllModules() {
+	for _, mod := range l.light.AllModules() {
 		m := DisplayedLightModule{
 			Name:   mod.Name(),
 			Status: mod.Status(),
@@ -71,14 +71,14 @@ func (h *LightHandler) ProcessLightAllHandler(req *http.Request) ([]byte, error)
 }
 
 // ProcessLightSingleHandler display actual light data for single mod
-func (h *LightHandler) ProcessLightSingleHandler(modName string, req *http.Request) ([]byte, error) {
+func (l *LightHandler) ProcessLightSingleHandler(modName string, req *http.Request) ([]byte, error) {
 	var data netdata.RestResponse
 
 	if req.Method != http.MethodGet {
 		return nil, errors.New("Bad request method")
 	}
 
-	mod := h.light.Module(modName)
+	mod := l.light.Module(modName)
 
 	m := DisplayedLightModule{
 		Name:   mod.Name(),
@@ -92,51 +92,30 @@ func (h *LightHandler) ProcessLightSingleHandler(modName string, req *http.Reque
 }
 
 // ProcessLightStatus set new light status for single mod
-func (h *LightHandler) ProcessLightStatus(modName string, status bool, req *http.Request) ([]byte, error) {
-	var data netdata.RestResponse
-	var resp ResultResponse
-
+func (l *LightHandler) ProcessLightStatus(modName string, status bool, req *http.Request) error {
 	// Update status state
-	mod := h.light.Module(modName)
+	mod := l.light.Module(modName)
 	mod.SetStatus(status)
 	mod.SetUpdate(true)
 
-	// Send response
-	netdata.SetRestResponse(&data, "light", "Light", resp, req)
-
-	jData, _ := json.Marshal(&data)
-	return jData, nil
+	return nil
 }
 
 // ProcessLightSwitchStatus switch current light status for single mod
-func (h *LightHandler) ProcessLightSwitchStatus(modName string, req *http.Request) ([]byte, error) {
-	var data netdata.RestResponse
-	var resp ResultResponse
-
+func (l *LightHandler) ProcessLightSwitchStatus(modName string, req *http.Request) error {
 	// Update status state
-	mod := h.light.Module(modName)
+	mod := l.light.Module(modName)
 	mod.SwitchStatus()
 	mod.SetUpdate(true)
 
-	// Send response
-	netdata.SetRestResponse(&data, "light", "Light", resp, req)
-
-	jData, _ := json.Marshal(&data)
-	return jData, nil
+	return nil
 }
 
 // ProcessHumCtrlSync sync current states with remote module
-func (h *LightHandler) ProcessLightSync(modName string, req *http.Request) ([]byte, error) {
-	var data netdata.RestResponse
-	var resp ResultResponse
-
+func (l *LightHandler) ProcessLightSync(modName string, req *http.Request) error {
 	// Update status state
-	mod := h.light.Module(modName)
+	mod := l.light.Module(modName)
 	mod.SetUpdate(true)
 
-	// Send response
-	netdata.SetRestResponse(&data, "light", "Light", resp, req)
-
-	jData, _ := json.Marshal(&data)
-	return jData, nil
+	return nil
 }

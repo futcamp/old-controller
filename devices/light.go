@@ -37,7 +37,7 @@ func NewLight(dc *configs.DynamicConfigs) *Light {
 }
 
 // AddModule add new humidity control mod
-func (l *Light) AddModule(name string, mod *modules.LightModule) {
+func (l *Light) AddModule(name string, mod modules.Illuminator) {
 	l.modules[name] = mod
 }
 

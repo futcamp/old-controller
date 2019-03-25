@@ -38,7 +38,7 @@ func NewHumidityControl(dc *configs.DynamicConfigs) *HumControl {
 }
 
 // AddModule add new humidity control mod
-func (h *HumControl) AddModule(name string, mod *modules.HumCtrlModule) {
+func (h *HumControl) AddModule(name string, mod modules.Humidifier) {
 	h.modules[name] = mod
 }
 

@@ -23,13 +23,13 @@ import (
 )
 
 type Light struct {
-	modules map[string]*modules.LightModule
+	modules map[string]modules.Illuminator
 	dynCfg  *configs.DynamicConfigs
 }
 
 // NewHumidityControl make new struct
 func NewLight(dc *configs.DynamicConfigs) *Light {
-	mods := make(map[string]*modules.LightModule)
+	mods := make(map[string]modules.Illuminator)
 	return &Light{
 		modules: mods,
 		dynCfg:  dc,
@@ -47,13 +47,13 @@ func (l *Light) DeleteModule(name string) {
 }
 
 // Module get mod by name
-func (l *Light) Module(name string) *modules.LightModule {
+func (l *Light) Module(name string) modules.Illuminator {
 	return l.modules[name]
 }
 
 // AllModules get all devices list
-func (l *Light) AllModules() []*modules.LightModule {
-	var mods []*modules.LightModule
+func (l *Light) AllModules() []modules.Illuminator {
+	var mods []modules.Illuminator
 
 	for _, mod := range l.modules {
 		mods = append(mods, mod)

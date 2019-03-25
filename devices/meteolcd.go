@@ -22,20 +22,20 @@ import (
 )
 
 type MeteoDisplay struct {
-	displays map[string]*modules.DisplayModule
+	displays map[string]modules.Indicator
 	sensors  []string
 }
 
 // NewMeteoDisplay make new struct
 func NewMeteoDisplay() *MeteoDisplay {
-	lcd := make(map[string]*modules.DisplayModule)
+	lcd := make(map[string]modules.Indicator)
 	return &MeteoDisplay{
 		displays: lcd,
 	}
 }
 
 // AddDisplay add new display
-func (m *MeteoDisplay) AddDisplay(name string, display *modules.DisplayModule) {
+func (m *MeteoDisplay) AddDisplay(name string, display modules.Indicator) {
 	m.displays[name] = display
 }
 
@@ -45,8 +45,8 @@ func (m *MeteoDisplay) DeleteDisplay(name string) {
 }
 
 // Displays get all displays list
-func (m *MeteoDisplay) Displays() []*modules.DisplayModule {
-	var displays []*modules.DisplayModule
+func (m *MeteoDisplay) Displays() []modules.Indicator {
+	var displays []modules.Indicator
 
 	for _, lcd := range m.displays {
 		displays = append(displays, lcd)
@@ -56,6 +56,6 @@ func (m *MeteoDisplay) Displays() []*modules.DisplayModule {
 }
 
 // Display get single display struct
-func (m *MeteoDisplay) Display(name string) *modules.DisplayModule {
+func (m *MeteoDisplay) Display(name string) modules.Indicator {
 	return m.displays[name]
 }

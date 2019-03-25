@@ -26,6 +26,24 @@ const (
 	SensorErrorValue = -255
 )
 
+type MeteoController interface {
+	Name() string
+	IP() string
+	Type() string
+	Errors() int
+	SetError()
+	ResetErrors()
+	SetDelta(value int)
+	SetType(value string)
+	SetIP(value string)
+	SetChannel(value int)
+	Temp() int
+	Humidity() int
+	Pressure() int
+	SetErrorValues()
+	SyncData() error
+}
+
 type MeteoModule struct {
 	name     string
 	ip       string

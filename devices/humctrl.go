@@ -22,14 +22,15 @@ import (
 	"github.com/futcamp/controller/utils/configs"
 )
 
+
 type HumControl struct {
-	modules map[string]*modules.HumCtrlModule
+	modules map[string]modules.Humidifier
 	dynCfg  *configs.DynamicConfigs
 }
 
 // NewHumidityControl make new struct
 func NewHumidityControl(dc *configs.DynamicConfigs) *HumControl {
-	mods := make(map[string]*modules.HumCtrlModule)
+	mods := make(map[string]modules.Humidifier)
 	return &HumControl{
 		modules: mods,
 		dynCfg:  dc,
@@ -47,13 +48,13 @@ func (h *HumControl) DeleteModule(name string) {
 }
 
 // Module get mod by name
-func (h *HumControl) Module(name string) *modules.HumCtrlModule {
+func (h *HumControl) Module(name string) modules.Humidifier {
 	return h.modules[name]
 }
 
 // AllModules get all devices list
-func (h *HumControl) AllModules() []*modules.HumCtrlModule {
-	var mods []*modules.HumCtrlModule
+func (h *HumControl) AllModules() []modules.Humidifier {
+	var mods []modules.Humidifier
 
 	for _, mod := range h.modules {
 		mods = append(mods, mod)

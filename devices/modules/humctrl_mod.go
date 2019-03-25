@@ -28,6 +28,28 @@ import (
 	"github.com/google/logger"
 )
 
+type Humidifier interface {
+	Update() bool
+	Name() string
+	Sensor() string
+	IP() string
+	Error() bool
+	SetError(err bool)
+	SetSensor(sensor string)
+	SetIP(ip string)
+	SetUpdate(state bool)
+	Status() bool
+	Threshold() int
+	Humidity() int
+	Humidifier() bool
+	SetHumidity(value int)
+	SetHumidifier(status bool)
+	SetThreshold(value int)
+	SetStatus(status bool)
+	SwitchStatus()
+	SyncData() error
+}
+
 type HumCtrlModule struct {
 	name      string
 	ip        string

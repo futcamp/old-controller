@@ -19,6 +19,15 @@ package modules
 
 import "github.com/futcamp/controller/devices/hardware"
 
+type Indicator interface {
+	Name() string
+	IP() string
+	Sensors() *[]string
+	SetIP(ip string)
+	AddSensor(sensor string)
+	SyncData(sensor string, temp int, hum int, pres int) error
+}
+
 type DisplayModule struct {
 	name    string
 	ip      string

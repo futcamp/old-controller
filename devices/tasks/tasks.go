@@ -19,6 +19,11 @@ package tasks
 
 import "github.com/futcamp/controller/utils/configs"
 
+type TaskManager interface {
+	Start()
+	TaskHandler()
+}
+
 type DeviceTasks struct {
 	cfg       *configs.Configs
 	meteoTask *MeteoTask

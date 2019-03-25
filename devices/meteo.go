@@ -20,20 +20,20 @@ package devices
 import "github.com/futcamp/controller/devices/modules"
 
 type MeteoStation struct {
-	modules map[string]*modules.MeteoModule
+	modules map[string]modules.MeteoController
 }
 
 // NewMeteoStation make new struct
 func NewMeteoStation() *MeteoStation {
-	mods := make(map[string]*modules.MeteoModule)
+	mods := make(map[string]modules.MeteoController)
 	return &MeteoStation{
 		modules: mods,
 	}
 }
 
 // AddModule add new meteo module
-func (m *MeteoStation) AddModule(name string, sensor *modules.MeteoModule) {
-	m.modules[name] = sensor
+func (m *MeteoStation) AddModule(name string, module modules.MeteoController) {
+	m.modules[name] = module
 }
 
 // DeleteModule delete module from storage
@@ -42,13 +42,13 @@ func (m *MeteoStation) DeleteModule(name string) {
 }
 
 // MeteoSensor get meteo module
-func (m *MeteoStation) Module(name string) *modules.MeteoModule {
+func (m *MeteoStation) Module(name string) modules.MeteoController {
 	return m.modules[name]
 }
 
 // AllSensors get all devices list
-func (m *MeteoStation) AllModules() []*modules.MeteoModule {
-	var mods []*modules.MeteoModule
+func (m *MeteoStation) AllModules() []modules.MeteoController {
+	var mods []modules.MeteoController
 
 	for _, sensor := range m.modules {
 		mods = append(mods, sensor)

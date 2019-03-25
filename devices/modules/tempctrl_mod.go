@@ -28,6 +28,28 @@ import (
 	"github.com/google/logger"
 )
 
+type TempController interface {
+	Update() bool
+	Name() string
+	Sensor() string
+	IP() string
+	Error() bool
+	SetError(err bool)
+	SetSensor(sensor string)
+	SetIP(ip string)
+	SetUpdate(state bool)
+	Status() bool
+	Threshold() int
+	Temperature() int
+	Heater() bool
+	SetTemperature(value int)
+	SetHeater(status bool)
+	SetThreshold(value int)
+	SetStatus(status bool)
+	SwitchStatus()
+	SyncData() error
+}
+
 type TempCtrlModule struct {
 	name      string
 	ip        string

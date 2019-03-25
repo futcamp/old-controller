@@ -23,13 +23,13 @@ import (
 )
 
 type TempControl struct {
-	modules map[string]*modules.TempCtrlModule
+	modules map[string]modules.TempController
 	dynCfg  *configs.DynamicConfigs
 }
 
 // NewTemperatureControl make new struct
 func NewTemperatureControl(dc *configs.DynamicConfigs) *TempControl {
-	mods := make(map[string]*modules.TempCtrlModule)
+	mods := make(map[string]modules.TempController)
 	return &TempControl{
 		modules: mods,
 		dynCfg:  dc,
@@ -37,7 +37,7 @@ func NewTemperatureControl(dc *configs.DynamicConfigs) *TempControl {
 }
 
 // AddModule add new humidity control mod
-func (t *TempControl) AddModule(name string, mod *modules.TempCtrlModule) {
+func (t *TempControl) AddModule(name string, mod modules.TempController) {
 	t.modules[name] = mod
 }
 
@@ -47,13 +47,13 @@ func (t *TempControl) DeleteModule(name string) {
 }
 
 // Module get mod by name
-func (t *TempControl) Module(name string) *modules.TempCtrlModule {
+func (t *TempControl) Module(name string) modules.TempController {
 	return t.modules[name]
 }
 
 // AllModules get all devices list
-func (t *TempControl) AllModules() []*modules.TempCtrlModule {
-	var mods []*modules.TempCtrlModule
+func (t *TempControl) AllModules() []modules.TempController {
+	var mods []modules.TempController
 
 	for _, mod := range t.modules {
 		mods = append(mods, mod)

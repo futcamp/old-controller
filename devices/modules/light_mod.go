@@ -28,6 +28,21 @@ import (
 	"github.com/google/logger"
 )
 
+type Illuminator interface {
+	Update() bool
+	Name() string
+	IP() string
+	Error() bool
+	SetError(err bool)
+	SetChannel(ch int)
+	SetIP(ip string)
+	SetUpdate(state bool)
+	Status() bool
+	SetStatus(status bool)
+	SwitchStatus()
+	SyncData() error
+}
+
 type LightModule struct {
 	name      string
 	ip        string

@@ -505,9 +505,10 @@ func (s *StartupMods) applyMonitorCfg(cmd string, dev string, args []string) err
 					continue
 				}
 				mod := s.meteo.Module(device)
-				s.devMonitor.AddDevice(mod.Name(), "meteo", mod.IP())
+				dev := monitoring.NewDevice(mod.Name(), "meteo", mod.IP())
+				s.devMonitor.AddDevice(dev)
 				logger.Infof("Monitor add new device from mod \"%s\" sensor \"%s\" for monitor \"%s\"",
-					args[0], mod.Name(), dev)
+					args[0], mod.Name(), dev.Name())
 			}
 			break
 
@@ -517,9 +518,10 @@ func (s *StartupMods) applyMonitorCfg(cmd string, dev string, args []string) err
 					continue
 				}
 				mod := s.humCtrl.Module(device)
-				s.devMonitor.AddDevice(mod.Name(), "humctrl", mod.IP())
+				dev := monitoring.NewDevice(mod.Name(), "humctrl", mod.IP())
+				s.devMonitor.AddDevice(dev)
 				logger.Infof("Monitor add new device from mod \"%s\" mod \"%s\" for monitor \"%s\"",
-					args[0], mod.Name(), dev)
+					args[0], mod.Name(), dev.Name())
 			}
 			break
 
@@ -529,9 +531,10 @@ func (s *StartupMods) applyMonitorCfg(cmd string, dev string, args []string) err
 					continue
 				}
 				mod := s.tempCtrl.Module(device)
-				s.devMonitor.AddDevice(mod.Name(), "tempctrl", mod.IP())
+				dev := monitoring.NewDevice(mod.Name(), "tempctrl", mod.IP())
+				s.devMonitor.AddDevice(dev)
 				logger.Infof("Monitor add new device from mod \"%s\" mod \"%s\" for monitor \"%s\"",
-					args[0], mod.Name(), dev)
+					args[0], mod.Name(), dev.Name())
 			}
 			break
 
@@ -541,9 +544,10 @@ func (s *StartupMods) applyMonitorCfg(cmd string, dev string, args []string) err
 					continue
 				}
 				mod := s.light.Module(device)
-				s.devMonitor.AddDevice(mod.Name(), "light", mod.IP())
+				dev := monitoring.NewDevice(mod.Name(), "light", mod.IP())
+				s.devMonitor.AddDevice(dev)
 				logger.Infof("Monitor add new device from mod \"%s\" mod \"%s\" for monitor \"%s\"",
-					args[0], mod.Name(), dev)
+					args[0], mod.Name(), dev.Name())
 			}
 			break
 
@@ -553,9 +557,10 @@ func (s *StartupMods) applyMonitorCfg(cmd string, dev string, args []string) err
 					continue
 				}
 				lcd := s.meteoLCD.Display(device)
-				s.devMonitor.AddDevice(lcd.Name(), "display", lcd.IP())
+				dev := monitoring.NewDevice(lcd.Name(), "display", lcd.IP())
+				s.devMonitor.AddDevice(dev)
 				logger.Infof("Monitor add new device from mod \"%s\" display \"%s\" for monitor \"%s\"",
-					args[0], lcd.Name(), dev)
+					args[0], lcd.Name(), dev.Name())
 			}
 			break
 		}

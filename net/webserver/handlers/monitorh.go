@@ -26,7 +26,7 @@ import (
 	"github.com/futcamp/controller/utils"
 )
 
-type MonitoringDevice struct {
+type DisplayedDevice struct {
 	Name   string `json:"name"`
 	Type   string `json:"type"`
 	Online bool   `json:"online"`
@@ -48,13 +48,13 @@ func NewMonitorHandler(log *utils.Logger,
 
 // ProcessMonitoring process monitoring of devices
 func (m *MonitorHandler) ProcessMonitoring(req *http.Request) ([]byte, error) {
-	var devices []MonitoringDevice
+	var devices []DisplayedDevice
 	data := &netdata.RestResponse{}
 
 	for _, dev := range *m.Monitor.AllDevices() {
-		device := MonitoringDevice{
-			Name:dev.Name,
-			Type:dev.Type,
+		device := DisplayedDevice{
+			Name:dev.Name(),
+			Type:dev.Type(),
 		}
 		device.Online = dev.Status()
 		devices = append(devices, device)

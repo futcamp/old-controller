@@ -19,45 +19,17 @@ package monitoring
 
 import (
 	"fmt"
-	"sync"
 
 	"github.com/futcamp/controller/notifier"
 
 	"github.com/google/logger"
 )
 
-// Structure with device fields
-type Device struct {
-	Name string
-	Type string
-	IP   string
-	Mtx  sync.Mutex
-	Stat bool
-}
-
 type DeviceMonitor struct {
 	name       string
 	notify     *notifier.Notifier
-	devices    []*Device
+	devices    []MonitoringDevice
 	firstCheck bool
-}
-
-// Status get device status
-func (d *Device) Status() bool {
-	var s bool
-
-	d.Mtx.Lock()
-	s = d.Stat
-	d.Mtx.Unlock()
-
-	return s
-}
-
-// SetStatus set device status
-func (d *Device) SetStatus(status bool) {
-	d.Mtx.Lock()
-	d.Stat = status
-	d.Mtx.Unlock()
 }
 
 // NewDeviceMonitor make new struct
@@ -74,22 +46,16 @@ func (d *DeviceMonitor) SetName(name string) {
 }
 
 // AddDevice add new device
-func (d *DeviceMonitor) AddDevice(name string, devType string, ip string) {
-	dev := &Device{
-		Name: name,
-		IP:   ip,
-		Type: devType,
-		Stat: false,
-	}
-	d.devices = append(d.devices, dev)
+func (d *DeviceMonitor) AddDevice(device MonitoringDevice) {
+	d.devices = append(d.devices, device)
 }
 
 // DeleteDevice delete device from storage
 func (d *DeviceMonitor) DeleteDevice(name string) {
-	var newDevs []*Device
+	var newDevs []MonitoringDevice
 
 	for _, dev := range d.devices {
-		if dev.Name != name {
+		if dev.Name() != name {
 			newDevs = append(newDevs, dev)
 		}
 	}
@@ -98,18 +64,18 @@ func (d *DeviceMonitor) DeleteDevice(name string) {
 }
 
 // AllDevices get devices list
-func (d *DeviceMonitor) AllDevices() *[]*Device {
+func (d *DeviceMonitor) AllDevices() *[]MonitoringDevice {
 	return &d.devices
 }
 
 // CheckDevices check states of devices
 func (d *DeviceMonitor) CheckDevices() {
 	for _, device := range d.devices {
-		wdev := NewWiFiController(device.IP)
+		wdev := NewWiFiController(device.IP())
 		status := wdev.DeviceStatus()
 
 		// Status was changed
-		if status != device.Stat {
+		if status != device.Status() {
 			device.SetStatus(status)
 			d.SendNotify(device)
 		} else if d.firstCheck {
@@ -123,7 +89,7 @@ func (d *DeviceMonitor) CheckDevices() {
 }
 
 // SendNotify send notify with status
-func (d *DeviceMonitor) SendNotify(device *Device) {
+func (d *DeviceMonitor) SendNotify(device MonitoringDevice) {
 	var status string
 	var message string
 

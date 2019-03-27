@@ -43,13 +43,14 @@ type WebServer struct {
 	humCtrlHdl  *handlers.HumCtrlHandler
 	tempCtrlHdl *handlers.TempCtrlHandler
 	lightHdl    *handlers.LightHandler
+	motionHdl    *handlers.MotionHandler
 }
 
 // NewWebServer make new struct
 func NewWebServer(cfg *configs.Configs, meteo *devices.MeteoStation, mh *handlers.MeteoHandler,
 	lh *handlers.LogHandler, mnh *handlers.MonitorHandler,
 	hch *handlers.HumCtrlHandler, tch *handlers.TempCtrlHandler,
-	lgh *handlers.LightHandler) *WebServer {
+	lgh *handlers.LightHandler, moth    *handlers.MotionHandler) *WebServer {
 	return &WebServer{
 		cfg:         cfg,
 		meteo:       meteo,
@@ -59,6 +60,7 @@ func NewWebServer(cfg *configs.Configs, meteo *devices.MeteoStation, mh *handler
 		humCtrlHdl:  hch,
 		tempCtrlHdl: tch,
 		lightHdl:    lgh,
+		motionHdl:moth,
 	}
 }
 
@@ -80,6 +82,9 @@ func (w *WebServer) Start(ip string, port int) error {
 	}
 	if w.cfg.Settings().Modules.Light {
 		mux.HandleFunc(fmt.Sprintf("/api/%s/light/", configs.ApiVersion), w.LightHandler)
+	}
+	if w.cfg.Settings().Modules.Light {
+		mux.HandleFunc(fmt.Sprintf("/api/%s/motion/", configs.ApiVersion), w.MotionHandler)
 	}
 
 	server := &http.Server{
@@ -542,6 +547,51 @@ func (w *WebServer) LightHandler(writer http.ResponseWriter, req *http.Request) 
 
 	// Get all light devices data
 	data, err := w.lightHdl.ProcessLightAllHandler(req)
+	if err != nil {
+		logger.Error(err.Error())
+		resp.SendFail(err.Error())
+		return
+	}
+	resp.Send(string(data))
+	return
+}
+
+// MotionHandler light requests handler
+func (w *WebServer) MotionHandler(writer http.ResponseWriter, req *http.Request) {
+	resp := NewResponse(&writer, configs.AppName)
+	args := strings.Split(req.RequestURI, "/")
+
+	// Activity states with remote module
+	if len(args) == 6 && args[5] != "" {
+		if req.Method == "PUT" {
+			if args[5] == "activity" {
+				w.motionHdl.ProcessMotionActivity(args[4], req)
+				resp.SendOk()
+				return
+			} else {
+				resp.SendFail("Bad sync request")
+				return
+			}
+		} else {
+			resp.SendFail("Bad sync request method")
+			return
+		}
+	}
+
+	// Get single mod data
+	if len(args) == 5 && args[4] != "" {
+		data, err := w.motionHdl.ProcessMotionSingleHandler(args[4], req)
+		if err != nil {
+			logger.Error(err.Error())
+			resp.SendFail(err.Error())
+			return
+		}
+		resp.Send(string(data))
+		return
+	}
+
+	// Get all light devices data
+	data, err := w.motionHdl.ProcessMotionAllHandler(req)
 	if err != nil {
 		logger.Error(err.Error())
 		resp.SendFail(err.Error())

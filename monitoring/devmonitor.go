@@ -99,8 +99,8 @@ func (d *DeviceMonitor) SendNotify(device MonitoringDevice) {
 		status = "offline"
 	}
 
-	message = fmt.Sprintf("device \"%s\" module \"%s\" is \"%s\"", device.Name,
-		device.Type, status)
+	message = fmt.Sprintf("device \"%s\" module \"%s\" is \"%s\"", device.Name(),
+		device.Type(), status)
 
 	logger.Infof("Monitor %s", message)
 	d.notify.SendNotify("Monitor:", message)

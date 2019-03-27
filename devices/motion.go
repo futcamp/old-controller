@@ -19,43 +19,40 @@ package devices
 
 import (
 	"github.com/futcamp/controller/devices/modules"
-	"github.com/futcamp/controller/utils/configs"
 )
 
-type TempControl struct {
-	modules map[string]modules.TempController
-	dynCfg  *configs.DynamicConfigs
+type Motion struct {
+	modules map[string]modules.MotionController
 }
 
-// NewTemperatureControl make new struct
-func NewTemperatureControl(dc *configs.DynamicConfigs) *TempControl {
-	mods := make(map[string]modules.TempController)
-	return &TempControl{
+// NewMotion make new struct
+func NewMotion() *Motion {
+	mods := make(map[string]modules.MotionController)
+	return &Motion{
 		modules: mods,
-		dynCfg:  dc,
 	}
 }
 
-// AddModule add new temp control control mod
-func (t *TempControl) AddModule(name string, mod modules.TempController) {
-	t.modules[name] = mod
+// AddModule add new motion control mod
+func (m *Motion) AddModule(name string, mod modules.MotionController) {
+	m.modules[name] = mod
 }
 
 // DeleteModule delete mod from storage
-func (t *TempControl) DeleteModule(name string) {
-	delete(t.modules, name)
+func (m *Motion) DeleteModule(name string) {
+	delete(m.modules, name)
 }
 
 // Module get mod by name
-func (t *TempControl) Module(name string) modules.TempController {
-	return t.modules[name]
+func (m *Motion) Module(name string) modules.MotionController {
+	return m.modules[name]
 }
 
 // AllModules get all devices list
-func (t *TempControl) AllModules() []modules.TempController {
-	var mods []modules.TempController
+func (m *Motion) AllModules() []modules.MotionController {
+	var mods []modules.MotionController
 
-	for _, mod := range t.modules {
+	for _, mod := range m.modules {
 		mods = append(mods, mod)
 	}
 

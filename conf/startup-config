@@ -32,6 +32,11 @@ light channel room 0
 light status room off
 !
 !
+motion add-device house
+motion delay house 60
+motion lamps house room
+!
+!
 display add-device house
 display ip house 127.0.0.1
 display sensors house room
@@ -58,6 +63,8 @@ monitor add-monitor main
 monitor device main meteo room street
 monitor device main display house
 monitor device main humctrl cab529
+monitor device main tempctrl cab529
+monitor device main motion house
 !
 !
 rcli add-user main login serg password cisco

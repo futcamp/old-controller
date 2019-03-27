@@ -67,6 +67,10 @@ func main() {
 	container.Provide(tasks.NewLightlTask)
 	container.Provide(handlers.NewLightHandler)
 
+	container.Provide(devices.NewMotion)
+	container.Provide(tasks.NewMotionTask)
+	container.Provide(handlers.NewMotionHandler)
+
 	container.Provide(handlers.NewMeteoHandler)
 	container.Provide(monitoring.NewDeviceMonitor)
 	container.Provide(monitoring.NewMonitorTask)

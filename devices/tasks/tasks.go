@@ -25,22 +25,24 @@ type TaskManager interface {
 }
 
 type DeviceTasks struct {
-	cfg       *configs.Configs
-	meteoTask *MeteoTask
-	hctrlTask *HumControlTask
-	tctrlTask *TempControlTask
-	lightTask *LightlTask
+	cfg        *configs.Configs
+	meteoTask  *MeteoTask
+	hctrlTask  *HumControlTask
+	tctrlTask  *TempControlTask
+	lightTask  *LightlTask
+	motionTask *MotionTask
 }
 
 // NewDeviceTasks make new struct
 func NewDeviceTasks(cfg *configs.Configs, mt *MeteoTask, ht *HumControlTask,
-	tt *TempControlTask, lght *LightlTask) *DeviceTasks {
+	tt *TempControlTask, lght *LightlTask, mot *MotionTask) *DeviceTasks {
 	return &DeviceTasks{
-		cfg:       cfg,
-		meteoTask: mt,
-		hctrlTask: ht,
-		tctrlTask: tt,
-		lightTask: lght,
+		cfg:        cfg,
+		meteoTask:  mt,
+		hctrlTask:  ht,
+		tctrlTask:  tt,
+		lightTask:  lght,
+		motionTask: mot,
 	}
 }
 
@@ -57,5 +59,8 @@ func (d *DeviceTasks) RunTasks() {
 	}
 	if d.cfg.Settings().Modules.Light {
 		go d.lightTask.Start()
+	}
+	if d.cfg.Settings().Modules.Motion {
+		go d.motionTask.Start()
 	}
 }

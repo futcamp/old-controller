@@ -34,6 +34,7 @@ type ModCfg struct {
 	Humctrl  bool
 	Tempctrl bool
 	Light    bool
+	Motion   bool
 }
 
 type ServerCfg struct {

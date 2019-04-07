@@ -71,6 +71,9 @@ func main() {
 	container.Provide(tasks.NewMotionTask)
 	container.Provide(handlers.NewMotionHandler)
 
+	container.Provide(devices.NewSecurity)
+	container.Provide(handlers.NewSecurityHandler)
+
 	container.Provide(handlers.NewMeteoHandler)
 	container.Provide(monitoring.NewDeviceMonitor)
 	container.Provide(monitoring.NewMonitorTask)

@@ -209,7 +209,7 @@ func (h *HumCtrlModule) SwitchStatus() {
 
 // SyncData sync data with module
 func (h *HumCtrlModule) SyncData() error {
-	_, err := hardware.HdkSyncHumCtrlData(h.ip, h.data.Status(), h.data.Humidifier())
+	_, err := hardware.HdkSyncHumCtrlData(h.IP(), h.data.Status(), h.data.Humidifier())
 	if err != nil {
 		return err
 	}

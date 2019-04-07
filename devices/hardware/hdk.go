@@ -19,6 +19,7 @@ package hardware
 
 import (
 	"fmt"
+	"strings"
 )
 
 type HdkMeteoData struct {
@@ -36,7 +37,7 @@ type HdkModResponse struct {
 func HdkSyncMeteoData(ip string, channel int, sensType string) (*HdkMeteoData, error) {
 	data := &HdkMeteoData{}
 
-	err := HdkHttpSyncData(ip, fmt.Sprintf("meteo?chan=%d&type=%s", channel, sensType), data)
+	err := HdkHttpSyncData(ip, fmt.Sprintf("meteo?chan=%d&type=%s", channel, strings.ToUpper(sensType)), data)
 
 	return data, err
 }
@@ -73,6 +74,15 @@ func HdkSyncLightData(ip string, channel int, status bool) (*HdkModResponse, err
 	resp := &HdkModResponse{}
 
 	err := HdkHttpSyncData(ip, fmt.Sprintf("light?chan=%d&status=%t", channel, status), resp)
+
+	return resp, err
+}
+
+// HdkSyncSecurityAlarm send cur security alarm state to controller
+func HdkSyncSecurityAlarm(ip string, alarm bool) (*HdkModResponse, error) {
+	resp := &HdkModResponse{}
+
+	err := HdkHttpSyncData(ip, fmt.Sprintf("security?alarm=%t", alarm), resp)
 
 	return resp, err
 }

@@ -45,6 +45,7 @@ type StartupMods struct {
 	tempCtrl   *devices.TempControl
 	light      *devices.Light
 	motion     *devices.Motion
+	security   *devices.Security
 }
 
 // NewStartupMods make new struct
@@ -53,7 +54,7 @@ func NewStartupMods(io *StartupIO, dc *configs.DynamicConfigs,
 	mon *monitoring.DeviceMonitor, cfg *configs.Configs,
 	hctrl *devices.HumControl, mlcd *devices.MeteoDisplay,
 	tctrl *devices.TempControl, lgh *devices.Light,
-	mot *devices.Motion) *StartupMods {
+	mot *devices.Motion, sec *devices.Security) *StartupMods {
 	return &StartupMods{
 		io:         io,
 		dynCfg:     dc,
@@ -66,6 +67,7 @@ func NewStartupMods(io *StartupIO, dc *configs.DynamicConfigs,
 		tempCtrl:   tctrl,
 		light:      lgh,
 		motion:     mot,
+		security:   sec,
 	}
 }
 
@@ -146,8 +148,16 @@ func (s *StartupMods) DeleteModCommand(fileName string, module string, cmd strin
 			}
 			break
 
+		case "security":
+			if s.cfg.Settings().Modules.Security {
+				s.security.DeleteModule(dev)
+			}
+			break
+
 		case "display":
-			s.meteoLCD.DeleteDisplay(dev)
+			if s.cfg.Settings().Modules.Meteo {
+				s.meteoLCD.DeleteDisplay(dev)
+			}
 			break
 
 		case "monitor":
@@ -207,6 +217,18 @@ func (s *StartupMods) applyConfigs(module string, cmd string, dev string, args [
 	case "motion":
 		if s.cfg.Settings().Modules.Motion {
 			s.applyMotionCfg(cmd, dev, args)
+		}
+		break
+
+	case "security":
+		if s.cfg.Settings().Modules.Security {
+			s.applySecurityCfg(cmd, dev, args)
+		}
+		break
+
+	case "security-global":
+		if s.cfg.Settings().Modules.Security {
+			s.applySecurityGlobalCfg(cmd, dev, args)
 		}
 		break
 
@@ -479,6 +501,50 @@ func (s *StartupMods) applyTempCtrlCfg(cmd string, dev string, args []string) er
 		mod := s.tempCtrl.Module(dev)
 		mod.SetThreshold(threshold)
 		logger.Infof("TempControl set threshold \"%d\" for device \"%s\"", threshold, dev)
+		break
+	}
+
+	return nil
+}
+
+// applySecurityGlobalCfg apply commands for security global mod
+func (s *StartupMods) applySecurityGlobalCfg(cmd string, dev string, args []string) error {
+	switch cmd {
+	case "status":
+		var stat bool
+
+		if args[0] == "on" {
+			stat= true
+		} else {
+			stat = false
+		}
+
+		s.security.SetStatus(stat)
+		logger.Infof("Security set new status \"%s\"", args[0])
+		break
+
+	case "key":
+		s.security.AddKey(args[0], args[1]);
+		logger.Infof("Security add user \"%s\" key \"%s\"", args[0], args[1])
+		break
+	}
+
+	return nil
+}
+
+// applySecurityCfg apply commands for security mod
+func (s *StartupMods) applySecurityCfg(cmd string, dev string, args []string) error {
+	switch cmd {
+	case "add-device":
+		mod := modules.NewSecurityModule(dev)
+		s.security.AddModule(dev, mod)
+		logger.Infof("Security add new device \"%s\"", dev)
+		break
+
+	case "ip":
+		mod := s.security.Module(dev)
+		mod.SetIP(args[0])
+		logger.Infof("Security set ip address \"%s\" for device \"%s\"", mod.IP(), dev)
 		break
 	}
 

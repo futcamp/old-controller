@@ -43,14 +43,15 @@ type WebServer struct {
 	humCtrlHdl  *handlers.HumCtrlHandler
 	tempCtrlHdl *handlers.TempCtrlHandler
 	lightHdl    *handlers.LightHandler
-	motionHdl    *handlers.MotionHandler
+	motionHdl   *handlers.MotionHandler
+	securityHdl *handlers.SecurityHandler
 }
 
 // NewWebServer make new struct
 func NewWebServer(cfg *configs.Configs, meteo *devices.MeteoStation, mh *handlers.MeteoHandler,
 	lh *handlers.LogHandler, mnh *handlers.MonitorHandler,
 	hch *handlers.HumCtrlHandler, tch *handlers.TempCtrlHandler,
-	lgh *handlers.LightHandler, moth    *handlers.MotionHandler) *WebServer {
+	lgh *handlers.LightHandler, moth *handlers.MotionHandler, sech *handlers.SecurityHandler) *WebServer {
 	return &WebServer{
 		cfg:         cfg,
 		meteo:       meteo,
@@ -60,7 +61,8 @@ func NewWebServer(cfg *configs.Configs, meteo *devices.MeteoStation, mh *handler
 		humCtrlHdl:  hch,
 		tempCtrlHdl: tch,
 		lightHdl:    lgh,
-		motionHdl:moth,
+		motionHdl:   moth,
+		securityHdl:sech,
 	}
 }
 
@@ -85,6 +87,9 @@ func (w *WebServer) Start(ip string, port int) error {
 	}
 	if w.cfg.Settings().Modules.Light {
 		mux.HandleFunc(fmt.Sprintf("/api/%s/motion/", configs.ApiVersion), w.MotionHandler)
+	}
+	if w.cfg.Settings().Modules.Security {
+		mux.HandleFunc(fmt.Sprintf("/api/%s/security/", configs.ApiVersion), w.SecurityHandler)
 	}
 
 	server := &http.Server{
@@ -547,6 +552,122 @@ func (w *WebServer) LightHandler(writer http.ResponseWriter, req *http.Request) 
 
 	// Get all light devices data
 	data, err := w.lightHdl.ProcessLightAllHandler(req)
+	if err != nil {
+		logger.Error(err.Error())
+		resp.SendFail(err.Error())
+		return
+	}
+	resp.Send(string(data))
+	return
+}
+
+// SecurityHandler security requests handler
+func (w *WebServer) SecurityHandler(writer http.ResponseWriter, req *http.Request) {
+	resp := NewResponse(&writer, configs.AppName)
+	args := strings.Split(req.RequestURI, "/")
+
+	// Change status
+	if len(args) == 6 && args[4] == "status" && args[6] != "" {
+		if req.Method == "PUT" {
+			switch args[5] {
+			case "on":
+				w.securityHdl.ProcessSecurityStatus(true, req)
+				resp.SendOk()
+				return
+
+			case "off":
+				w.securityHdl.ProcessSecurityStatus(false, req)
+				resp.SendOk()
+				return
+
+			default:
+				resp.SendFail("Bad status request")
+				return
+			}
+		} else {
+			resp.SendFail("Bad status request")
+			return
+		}
+	}
+
+	// Open request
+	if len(args) == 6 && args[5] != "" {
+		if req.Method == "PUT" {
+			switch (args[5]) {
+			case "open":
+				err := w.securityHdl.ProcessSecurityOpenHandler(args[4], req)
+				if err != nil {
+					logger.Error(err.Error())
+					resp.SendFail(err.Error())
+					return
+				}
+				resp.SendOk()
+				return
+
+			default:
+				resp.SendFail("Bad sync request")
+				return
+			}
+		} else {
+			resp.SendFail("Bad sync request method")
+			return
+		}
+	}
+
+	// Open request
+	if len(args) == 6 && args[5] != "" {
+		if req.Method == "PUT" {
+			if args[5] == "open" {
+				err := w.securityHdl.ProcessSecurityOpenHandler(args[4], req)
+				if err != nil {
+					logger.Error(err.Error())
+					resp.SendFail(err.Error())
+					return
+				}
+				resp.SendOk()
+				return
+			} else {
+				resp.SendFail("Bad open request")
+				return
+			}
+		} else {
+			resp.SendFail("Bad open request method")
+			return
+		}
+	}
+
+	// Keys request
+	if len(args) == 5 && args[4] != "" {
+		if req.Method == "GET" {
+			if args[4] == "keys" {
+				data, err := w.securityHdl.ProcessSecurityKeys(req)
+				if err != nil {
+					logger.Error(err.Error())
+					resp.SendFail(err.Error())
+					return
+				}
+				resp.Send(string(data))
+			}
+		} else {
+			resp.SendFail("Bad keys request method")
+			return
+		}
+	}
+
+	// Get single mod data
+	if len(args) == 5 && args[4] != "" {
+		data, err := w.securityHdl.ProcessSecuritySingleHandler(args[4], req)
+		if err != nil {
+			logger.Error(err.Error())
+			resp.SendFail(err.Error())
+			return
+		}
+		resp.Send(string(data))
+		return
+	}
+
+	// Get all light devices data
+	data, err := w.securityHdl.ProcessSecurityAllHandler(req)
 	if err != nil {
 		logger.Error(err.Error())
 		resp.SendFail(err.Error())

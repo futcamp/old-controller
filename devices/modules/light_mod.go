@@ -88,6 +88,11 @@ func (l *LightModule) IP() string {
 	return l.ip
 }
 
+// Channel get current mod channel
+func (l *LightModule) Channel() int {
+	return l.channel
+}
+
 // Error get current error state
 func (l *LightModule) Error() bool {
 	return l.error
@@ -160,7 +165,7 @@ func (l *LightModule) SwitchStatus() {
 
 // SyncData sync data with module
 func (l *LightModule) SyncData() error {
-	_, err := hardware.HdkSyncLightData(l.ip, l.channel, l.data.Status())
+	_, err := hardware.HdkSyncLightData(l.IP(), l.Channel(), l.data.Status())
 	if err != nil {
 		return err
 	}

@@ -76,7 +76,7 @@ func (d *DisplayModule) AddSensor(sensor string) {
 
 // Sync data get actual meteo data from remote module
 func (m *DisplayModule) SyncData(sensor string, temp int, hum int, pres int) error {
-	_, err := hardware.HdkSyncDisplayData(m.ip, sensor, temp, hum, pres)
+	_, err := hardware.HdkSyncDisplayData(m.IP(), sensor, temp, hum, pres)
 	if err != nil {
 		return err
 	}

@@ -32,7 +32,7 @@ const (
 // TempControlTask temperature control task struct
 type TempControlTask struct {
 	dynCfg   *configs.DynamicConfigs
-	tempCtrl  *devices.TempControl
+	tempCtrl *devices.TempControl
 	reqTimer *time.Timer
 }
 
@@ -40,7 +40,7 @@ type TempControlTask struct {
 func NewTempControlTask(tctrl *devices.TempControl, dc *configs.DynamicConfigs) *TempControlTask {
 	return &TempControlTask{
 		tempCtrl: tctrl,
-		dynCfg:  dc,
+		dynCfg:   dc,
 	}
 }
 

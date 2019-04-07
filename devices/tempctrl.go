@@ -36,7 +36,7 @@ func NewTemperatureControl(dc *configs.DynamicConfigs) *TempControl {
 	}
 }
 
-// AddModule add new temp control control mod
+// AddModule add new temp control mod
 func (t *TempControl) AddModule(name string, mod modules.TempController) {
 	t.modules[name] = mod
 }

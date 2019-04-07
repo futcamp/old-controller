@@ -209,7 +209,7 @@ func (t *TempCtrlModule) SwitchStatus() {
 
 // SyncData sync data with module
 func (t *TempCtrlModule) SyncData() error {
-	_, err := hardware.HdkSyncTempCtrlData(t.ip, t.data.Status(), t.data.Heater())
+	_, err := hardware.HdkSyncTempCtrlData(t.IP(), t.data.Status(), t.data.Heater())
 	if err != nil {
 		return err
 	}

@@ -22,9 +22,15 @@ import (
 	"github.com/futcamp/controller/utils/configs"
 )
 
+type ToiletLamp struct {
+	Name      string
+	LastState bool
+}
+
 type Light struct {
-	modules map[string]modules.Illuminator
-	dynCfg  *configs.DynamicConfigs
+	modules     map[string]modules.Illuminator
+	dynCfg      *configs.DynamicConfigs
+	toiletLamps []modules.Lamp
 }
 
 // NewHumidityControl make new struct
@@ -34,6 +40,17 @@ func NewLight(dc *configs.DynamicConfigs) *Light {
 		modules: mods,
 		dynCfg:  dc,
 	}
+}
+
+// AddToiletLamp add new toilet lamp
+func (l *Light) AddToiletLamp(lamp string) {
+	lmp := modules.NewToiletLamp(lamp)
+	l.toiletLamps = append(l.toiletLamps, lmp)
+}
+
+// ToiletLamps get toilet lamps
+func (l *Light) ToiletLamps() *[]modules.Lamp {
+	return &l.toiletLamps
 }
 
 // AddModule add new light mod

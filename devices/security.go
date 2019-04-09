@@ -19,9 +19,12 @@ package devices
 
 import (
 	"fmt"
+
 	"github.com/futcamp/controller/devices/data"
+	"github.com/futcamp/controller/devices/hardware"
 	"github.com/futcamp/controller/devices/modules"
 	"github.com/futcamp/controller/utils/configs"
+
 	"github.com/google/logger"
 )
 
@@ -35,6 +38,7 @@ type Security struct {
 	dynCfg  *configs.DynamicConfigs
 	data    data.SecurityData
 	keys    []UserKey
+	sirenIp string
 }
 
 // NewSecurity make new struct
@@ -58,6 +62,16 @@ func (s *Security) Status() bool {
 // Status get current security alarm
 func (s *Security) Alarm() bool {
 	return s.data.Alarm()
+}
+
+// SetSirenIP set new ip for siren
+func (s *Security) SetSirenIP(ip string) {
+	s.sirenIp = ip
+}
+
+// SendAlarm send alarm status for siren
+func (s *Security) SendAlarm(state bool) {
+	hardware.HdkSendSecurityAlarm(s.sirenIp, state)
 }
 
 // Status get current security status

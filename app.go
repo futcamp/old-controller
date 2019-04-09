@@ -82,7 +82,6 @@ func (a *Application) Start() {
 	err := a.cfg.LoadFromFile(utils.ConfigsPath)
 	if err != nil {
 		logger.Errorf("Application fail to load %s configs", "main")
-		logger.Error(err.Error())
 		return
 	}
 	logger.Infof("Application configs %s was loaded", "main")
@@ -94,7 +93,6 @@ func (a *Application) Start() {
 	err = a.startup.Load(utils.StartupCfgPath)
 	if err != nil {
 		logger.Error("Application fail to read startup configs")
-		logger.Error(err.Error())
 		return
 	}
 	logger.Info("Application startup configs was loaded")
@@ -113,7 +111,6 @@ func (a *Application) Start() {
 		err = a.rcli.Start(a.cfg.Settings().RCliServer.IP, a.cfg.Settings().RCliServer.Port)
 		if err != nil {
 			logger.Error("Application fail to start RemoteCLI server")
-			logger.Error(err.Error())
 			return
 		}
 	}()
@@ -125,7 +122,6 @@ func (a *Application) Start() {
 	err = a.server.Start(a.cfg.Settings().Server.IP, a.cfg.Settings().Server.Port)
 	if err != nil {
 		logger.Error("Application fail to start WebServer")
-		logger.Error(err.Error())
 	}
 
 	logger.Info("Application was finished")

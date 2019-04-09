@@ -78,8 +78,8 @@ func HdkSyncLightData(ip string, channel int, status bool) (*HdkModResponse, err
 	return resp, err
 }
 
-// HdkSyncSecurityAlarm send cur security alarm state to controller
-func HdkSyncSecurityAlarm(ip string, alarm bool) (*HdkModResponse, error) {
+// HdkSendSecurityAlarm send cur security alarm state to controller
+func HdkSendSecurityAlarm(ip string, alarm bool) (*HdkModResponse, error) {
 	resp := &HdkModResponse{}
 
 	err := HdkHttpSyncData(ip, fmt.Sprintf("security?alarm=%t", alarm), resp)

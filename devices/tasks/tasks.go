@@ -31,11 +31,13 @@ type DeviceTasks struct {
 	tctrlTask  *TempControlTask
 	lightTask  *LightlTask
 	motionTask *MotionTask
+	secureTask *SecurityTask
 }
 
 // NewDeviceTasks make new struct
 func NewDeviceTasks(cfg *configs.Configs, mt *MeteoTask, ht *HumControlTask,
-	tt *TempControlTask, lght *LightlTask, mot *MotionTask) *DeviceTasks {
+	tt *TempControlTask, lght *LightlTask, mot *MotionTask,
+	secTask *SecurityTask) *DeviceTasks {
 	return &DeviceTasks{
 		cfg:        cfg,
 		meteoTask:  mt,
@@ -43,6 +45,7 @@ func NewDeviceTasks(cfg *configs.Configs, mt *MeteoTask, ht *HumControlTask,
 		tctrlTask:  tt,
 		lightTask:  lght,
 		motionTask: mot,
+		secureTask: secTask,
 	}
 }
 
@@ -62,5 +65,8 @@ func (d *DeviceTasks) RunTasks() {
 	}
 	if d.cfg.Settings().Modules.Motion {
 		go d.motionTask.Start()
+	}
+	if d.cfg.Settings().Modules.Security {
+		go d.secureTask.Start()
 	}
 }

@@ -126,7 +126,7 @@ func (s *SecurityModule) SetUpdate(state bool) {
 
 // SyncData sync data with module
 func (s *SecurityModule) SyncAlarm(alarm bool) error {
-	_, err := hardware.HdkSyncSecurityAlarm(s.IP(), alarm)
+	_, err := hardware.HdkSendSecurityAlarm(s.IP(), alarm)
 	if err != nil {
 		return err
 	}

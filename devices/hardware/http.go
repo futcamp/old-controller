@@ -22,11 +22,21 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
+)
+
+const (
+	HdkTimeout = 100
 )
 
 // HdkHttpSyncData sync data witch remote controller by http request
 func HdkHttpSyncData(ip string, request string, response interface{}) error {
-	res, err := http.Get(fmt.Sprintf("http://%s/%s", ip, request))
+	timeout := time.Duration(HdkTimeout * time.Millisecond)
+	client := http.Client{
+		Timeout: timeout,
+	}
+
+	res, err := client.Get(fmt.Sprintf("http://%s/%s", ip, request))
 	if err != nil {
 		return err
 	}

@@ -79,7 +79,6 @@ func (h *HumControlTask) TaskHandler() {
 					if !module.Error() {
 						module.SetError(true)
 						logger.Errorf("HumControl fail to sync data with \"%s\" module!", module.Name())
-						logger.Error(err.Error())
 					}
 					continue
 				}

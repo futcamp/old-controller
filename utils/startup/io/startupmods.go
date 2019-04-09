@@ -214,6 +214,12 @@ func (s *StartupMods) applyConfigs(module string, cmd string, dev string, args [
 		}
 		break
 
+	case "light-global":
+		if s.cfg.Settings().Modules.Light {
+			s.applyLightGlobalCfg(cmd, dev, args)
+		}
+		break
+
 	case "motion":
 		if s.cfg.Settings().Modules.Motion {
 			s.applyMotionCfg(cmd, dev, args)
@@ -420,6 +426,20 @@ func (s *StartupMods) applyLightCfg(cmd string, dev string, args []string) error
 	return nil
 }
 
+// applyLightGlobalCfg apply commands for light global
+func (s *StartupMods) applyLightGlobalCfg(cmd string, dev string, args []string) error {
+	switch cmd {
+	case "toilet-set":
+		for _, lamp := range args {
+			s.light.AddToiletLamp(lamp)
+			logger.Infof("LightGlobal add toilet lamp \"%s\"", lamp)
+		}
+		break
+	}
+
+	return nil
+}
+
 // applyMotionCfg apply commands for motion mod
 func (s *StartupMods) applyMotionCfg(cmd string, dev string, args []string) error {
 	switch cmd {
@@ -514,7 +534,7 @@ func (s *StartupMods) applySecurityGlobalCfg(cmd string, dev string, args []stri
 		var stat bool
 
 		if args[0] == "on" {
-			stat= true
+			stat = true
 		} else {
 			stat = false
 		}
@@ -523,8 +543,13 @@ func (s *StartupMods) applySecurityGlobalCfg(cmd string, dev string, args []stri
 		logger.Infof("Security set new status \"%s\"", args[0])
 		break
 
+	case "siren-ip":
+		s.security.SetSirenIP(args[0])
+		logger.Infof("Security set siren ip \"%s\"", args[0])
+		break
+
 	case "key":
-		s.security.AddKey(args[0], args[1]);
+		s.security.AddKey(args[0], args[1])
 		logger.Infof("Security add user \"%s\" key \"%s\"", args[0], args[1])
 		break
 	}

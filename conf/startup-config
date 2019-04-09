@@ -1,45 +1,61 @@
 !
 !
 meteo add-device room
-meteo ip room 127.0.0.1
-meteo type room dht22
+meteo ip room 192.168.0.204
+meteo type room ds18b20
 meteo channel room 0
-meteo temp-delta room -1
-!
-meteo add-device street
-meteo ip street 127.0.0.1
-meteo type street dht22
-meteo channel street 0
 !
 !
-humctrl add-device cab529
-humctrl ip cab529 127.0.0.1
-humctrl sensor cab529 cab529
-humctrl threshold cab529 22
-humctrl status cab529 on
+display add-device house
+display ip house 192.168.5.100
+display sensors house room
 !
 !
-tempctrl add-device cab529
-tempctrl ip cab529 127.0.0.1
-tempctrl sensor cab529 cab529
-tempctrl threshold cab529 22
-tempctrl status cab529 on
+humctrl add-device room
+humctrl ip room 192.168.5.103
+humctrl sensor room room
+humctrl status room on
+humctrl threshold room 22
+!
+!
+tempctrl add-device room
+tempctrl ip room 192.168.0.201
+tempctrl sensor room room
+tempctrl status room on
+tempctrl threshold room 22
 !
 !
 light add-device room
-light ip room 127.0.0.1
+light ip room 192.168.0.202
 light channel room 0
-light status room off
+light status room on
+!
+!
+light-global add-light main
+light-global toilet-set main toilet road
+!
+!
+security add-device veranda-door
+security ip veranda-door 192.168.0.205
+!
+security add-device veranda-window
+security ip veranda-window 192.168.0.205
+!
+!
+security add-device house-door
+security ip house-door 192.168.0.210
+!
+!
+security-global add-secure main
+security-global status main on
+security-global siren-ip main 127.0.0.1
+security-global key main serg 123
+security-global key main den 231
 !
 !
 motion add-device house
 motion delay house 60
 motion lamps house room
-!
-!
-display add-device house
-display ip house 127.0.0.1
-display sensors house room
 !
 !
 db add-base meteodb ip 127.0.0.1 port 3306 login serg password cisco base meteo
@@ -55,16 +71,13 @@ timer add-delay display 20
 !
 !
 notify add-server telegram
-notify api-key telegram 123:123456
+notify api-key telegram 123:456
 notify chat-id telegram 123
 !
 !
 monitor add-monitor main
-monitor device main meteo room street
+monitor device main meteo room
 monitor device main display house
-monitor device main humctrl cab529
-monitor device main tempctrl cab529
-monitor device main motion house
 !
 !
 rcli add-user main login serg password cisco

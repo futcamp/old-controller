@@ -73,6 +73,7 @@ func main() {
 
 	container.Provide(devices.NewSecurity)
 	container.Provide(handlers.NewSecurityHandler)
+	container.Provide(tasks.NewSecurityTask)
 
 	container.Provide(handlers.NewMeteoHandler)
 	container.Provide(monitoring.NewDeviceMonitor)

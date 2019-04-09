@@ -497,6 +497,12 @@ func (w *WebServer) LightHandler(writer http.ResponseWriter, req *http.Request) 
 				return
 
 			case "switch":
+				if args[4] == "toilet-set" {
+					w.lightHdl.ProcessToiletSwitchStatus(req)
+					resp.SendOk()
+					return
+				}
+
 				err := w.lightHdl.ProcessLightSwitchStatus(args[4], req)
 				if err != nil {
 					logger.Error(err.Error())

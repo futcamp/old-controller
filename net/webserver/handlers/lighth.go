@@ -119,3 +119,15 @@ func (l *LightHandler) ProcessLightSync(modName string, req *http.Request) error
 
 	return nil
 }
+
+// ProcessToiletSwitchStatus switch current toilet light status
+func (l *LightHandler) ProcessToiletSwitchStatus(req *http.Request) error {
+	for _, toiletLamp := range *l.light.ToiletLamps() {
+		lamp := l.light.Module(toiletLamp.Name())
+		toiletLamp.SetState(lamp.Status())
+
+		lamp.SwitchStatus()
+	}
+
+	return nil
+}

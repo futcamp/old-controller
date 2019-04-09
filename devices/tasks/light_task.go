@@ -29,7 +29,6 @@ const (
 	lightTaskDelay = 500
 )
 
-// HumControlTask humidity control task struct
 type LightlTask struct {
 	dynCfg   *configs.DynamicConfigs
 	light    *devices.Light
@@ -58,7 +57,6 @@ func (l *LightlTask) TaskHandler() {
 					if !module.Error() {
 						module.SetError(true)
 						logger.Errorf("Light fail to sync data with \"%s\" module!", module.Name())
-						logger.Error(err.Error())
 					}
 					continue
 				}
